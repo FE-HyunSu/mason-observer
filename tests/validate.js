@@ -82,9 +82,27 @@ check('plugin.json is valid', () => {
   const p = path.join(PLUGIN_DIR, '.claude-plugin', 'plugin.json')
   const data = readJSON(p)
   if (!data.name) throw new Error('missing "name"')
+  // Regression guard: `hooks/hooks.json` at the plugin root is auto-discovered by
+  // Claude Code. Also declaring it via manifest.hooks makes Claude Code see the
+  // same file twice and refuse to load the plugin ("Duplicate hooks file
+  // detected") — this broke a real install (see CHANGELOG 0.1.2). So:
+  //  - manifest.hooks must be absent, OR
+  //  - if present, it must NOT resolve to the default hooks/hooks.json path.
   if (data.hooks) {
     const hooksPath = path.join(PLUGIN_DIR, data.hooks)
+    const defaultHooksPath = path.join(PLUGIN_DIR, 'hooks', 'hooks.json')
     if (!fs.existsSync(hooksPath)) throw new Error(`hooks path "${data.hooks}" does not exist`)
+    if (path.resolve(hooksPath) === path.resolve(defaultHooksPath)) {
+      throw new Error(
+        'manifest.hooks points at the default hooks/hooks.json path, which Claude Code already ' +
+          'auto-discovers — this causes a "Duplicate hooks file detected" load failure. Remove the ' +
+          '"hooks" field from plugin.json instead of declaring it explicitly.'
+      )
+    }
+  }
+  const defaultHooksPath = path.join(PLUGIN_DIR, 'hooks', 'hooks.json')
+  if (!fs.existsSync(defaultHooksPath)) {
+    throw new Error('expected hooks/hooks.json at the plugin root (auto-discovered) but it is missing')
   }
   return `name=${data.name}`
 })

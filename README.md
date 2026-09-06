@@ -217,7 +217,7 @@ This plugin was built against the Plugin / Marketplace / Hooks / Skill specifica
 - Plugin/Marketplace/Hooks/Skill core structure: confirmed both in the docs and via a real install and load.
 - `prompt_id` (used for turn correlation) — the official docs state "requires Claude Code v2.1.196 or later," but **it was observed to be populated correctly on v2.1.178.** This documented minimum version requirement therefore does not match reality; the true minimum is left as unknown. The time-window-based fallback (for when `promptId` is absent) is still kept regardless.
 - The `UserPromptSubmit` prompt-text field name (`prompt`) was confirmed populated correctly in real logs (see [docs/event-schema.md](./docs/event-schema.md) for details).
-- `/reload-plugins` reported "1 error during load," but since the loaded component counts (1 plugin · 4 skills · 10 hooks) exactly matched what this plugin declares, that error is likely unrelated to mason-observer itself — though the exact cause was not confirmed (unknown). The VS Code extension doesn't expose a `/plugin` Errors tab, so confirming the cause requires an interactive terminal `claude` session's `/plugin` → Errors tab, or `claude plugin details mason-observer`.
+- `/reload-plugins` originally reported "1 error during load" with no visible cause in the VS Code extension. **Root cause found and fixed in v0.1.2**: `plugin.json` explicitly declared `"hooks": "./hooks/hooks.json"`, but that exact path is already auto-discovered by Claude Code by default — declaring it again made Claude Code treat it as a duplicate and (on a fresh install of a bumped version) fail to load the plugin entirely, reporting `Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file .../hooks/hooks.json`. The fix was simply removing the redundant `hooks` field from `plugin.json`; `tests/validate.js` now has a regression check for this specific mistake.
 
 Running `/mason-observer:status` after installing is the recommended way to directly confirm events are being collected correctly in your own environment.
 
@@ -229,7 +229,7 @@ The full list is in [docs/limitations.md](./docs/limitations.md). Key points:
 - A file being accessed, or an instruction being loaded, does not mean it was actually applied.
 - The Observer's own analysis (the report-generation step) is also Claude's interpretation, and can itself be wrong.
 - Masking is pattern-based and therefore not exhaustive.
-- End-to-end verification against a real Claude Code process has now been done (see §17 above), but the exact cause of the "1 error during load" reported by `/reload-plugins` remains unconfirmed (unknown).
+- End-to-end verification against a real Claude Code process has now been done (see §17 above). The "1 error during load" it first surfaced was root-caused and fixed in v0.1.2 (a redundant `hooks` field in `plugin.json` — see §17).
 
 ## 19. Development and testing
 

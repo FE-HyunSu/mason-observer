@@ -267,12 +267,13 @@ Marketplace / Hooks / Skill 규격을 기준으로 작성했습니다.
   경우를 대비한 시간 구간 기반 폴백은 계속 유지됩니다.
 - `UserPromptSubmit`의 프롬프트 텍스트 필드명(`prompt`)은 실제 로그에서 정상적으로
   채워지는 것을 확인했습니다(자세한 내용은 [docs/event-schema.md](./docs/event-schema.md)).
-- `/reload-plugins` 실행 시 "1 error during load"가 보고됐으나, 로드된 컴포넌트
-  개수(1 plugin · 4 skills · 10 hooks)가 이 플러그인이 선언한 개수와 정확히 일치해
-  mason-observer 자체의 로드 오류는 아닌 것으로 보입니다 — 다만 원인을 확정하지는
-  못했습니다(unknown). VS Code 확장에서는 `/plugin` Errors 탭이 열리지 않으므로, 원인을
-  보려면 터미널 인터랙티브 `claude` 세션에서 `/plugin` → Errors 탭 또는
-  `claude plugin details mason-observer`로 확인해야 합니다.
+- `/reload-plugins` 실행 시 처음엔 "1 error during load"가 원인 불명으로 보고됐습니다.
+  **v0.1.2에서 원인을 찾아 수정했습니다**: `plugin.json`에 `"hooks": "./hooks/hooks.json"`을
+  명시적으로 선언해뒀는데, 이 경로는 Claude Code가 기본적으로 자동 로드하는 표준 위치라서
+  또 명시하면 "같은 파일이 중복 로드된다"고 판단해 플러그인 로드 자체를 실패시켰습니다
+  (`Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file
+  .../hooks/hooks.json`). 수정은 `plugin.json`에서 불필요한 `hooks` 필드를 제거하는
+  것으로 충분했고, `tests/validate.js`에 이 실수를 다시 잡아내는 회귀 테스트를 추가했습니다.
 
 `/mason-observer:status`로 실제 환경에서 이벤트가 정상적으로 수집되는지 직접 확인해
 보시길 권장합니다.
@@ -286,8 +287,9 @@ Marketplace / Hooks / Skill 규격을 기준으로 작성했습니다.
 - 파일 접근/지침 로드가 "실제 적용"을 의미하지는 않습니다.
 - Observer(리포트 생성 과정)도 Claude의 해석이므로 오류가 있을 수 있습니다.
 - 마스킹은 알려진 패턴 기반이라 완전하지 않습니다.
-- 실제 Claude Code 프로세스를 통한 end-to-end 검증은 완료했으나(위 §17 참고), `/reload-plugins`가
-  보고한 "1 error during load"의 정확한 원인은 아직 확인하지 못했습니다(unknown).
+- 실제 Claude Code 프로세스를 통한 end-to-end 검증은 완료했습니다(위 §17 참고). 이 과정에서
+  처음 발견된 "1 error during load"는 `plugin.json`의 불필요한 `hooks` 필드 중복 선언이
+  원인이었고, v0.1.2에서 수정했습니다(위 §17 참고).
 
 ## 19. 개발 및 테스트 방법
 

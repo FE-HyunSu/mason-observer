@@ -3,6 +3,24 @@
 이 프로젝트는 [Keep a Changelog](https://keepachangelog.com/) 형식을 따르려 하며,
 버전은 태그 기반([릴리스 체크리스트](./README.md#릴리스-체크리스트-태그-기반-버전-관리) 참고)으로 관리한다.
 
+## [0.1.2] - 2026-09-06
+
+### Fixed
+
+- **`plugin.json`이 자체 로드 실패를 유발하던 버그를 수정했다.** `"hooks": "./hooks/hooks.json"`을
+  명시적으로 선언해뒀는데, 이 경로는 Claude Code가 기본적으로 자동 로드하는 표준 위치라서
+  또 명시하면 중복으로 인식되어 플러그인 로드 자체가 실패했다
+  (`Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file .../hooks/hooks.json`).
+  실제 사용자가 v0.1.0 → v0.1.1로 업데이트를 시도하다가 이 에러로 완전히 막히는 것을
+  터미널 로그로 확인하고 나서 발견했다. `plugin.json`에서 불필요한 `hooks` 필드를
+  제거해 해결했다.
+- 이 버그는 사실 v0.1.0/v0.1.1에서 `/reload-plugins`가 원인 불명으로 보고했던
+  "1 error during load"의 실체였을 가능성이 높다(정확히 같은 증상). README/README_ko의
+  §17, §18과 `docs/limitations.md`에 이 내용을 반영했다.
+- `tests/validate.js`에 이 실수를 다시 잡아낼 수 있는 회귀 검사를 추가했다: `plugin.json`의
+  `hooks` 필드가 자동 로드되는 기본 `hooks/hooks.json` 경로와 같은 파일을 가리키면
+  검증에 실패한다.
+
 ## [0.1.1] - 2026-09-06
 
 ### Changed
