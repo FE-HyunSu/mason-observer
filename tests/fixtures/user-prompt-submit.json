@@ -1,0 +1,7 @@
+{
+  "session_id": "sess-fixture-001",
+  "prompt_id": "prompt-fixture-001",
+  "cwd": "__PROJECT_ROOT__",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "please run the tests, my token is sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789"
+}

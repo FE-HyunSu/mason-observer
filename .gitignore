@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# mason-observer local logs (this repo can itself be opened as a Claude Code
+# project while developing/testing the plugin against itself)
+.mason-observer/
+
+# scratch
+*.tmp

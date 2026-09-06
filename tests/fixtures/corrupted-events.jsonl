@@ -1,0 +1,4 @@
+{"schemaVersion":1,"timestamp":"2026-09-06T01:00:00.000Z","event":"UserPromptSubmit","sessionId":"sess-corrupt","promptId":"p1","cwd":"/tmp/project","source":"claude-code-hook","data":{"prompt":"hello"},"redaction":{"applied":true,"count":0}}
+{this is not valid json,,,
+{"schemaVersion":1,"timestamp":"2026-09-06T01:00:05.000Z","event":"Stop","sessionId":"sess-corrupt","promptId":"p1","cwd":"/tmp/project","source":"claude-code-hook","data":{"lastAssistantMessage":"done"},"redaction":{"applied":true,"count":0}}
+

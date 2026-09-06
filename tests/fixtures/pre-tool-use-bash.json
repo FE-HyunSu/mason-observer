@@ -1,0 +1,13 @@
+{
+  "session_id": "sess-fixture-001",
+  "prompt_id": "prompt-fixture-001",
+  "cwd": "__PROJECT_ROOT__",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "tool_use_id": "toolu_fixture_1",
+  "tool_input": {
+    "command": "export API_KEY=abcd1234 && npm test",
+    "description": "Run test suite",
+    "run_in_background": false
+  }
+}

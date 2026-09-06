@@ -1,0 +1,12 @@
+{
+  "session_id": "sess-fixture-001",
+  "prompt_id": "prompt-fixture-001",
+  "cwd": "__PROJECT_ROOT__",
+  "hook_event_name": "PostToolUseFailure",
+  "tool_name": "Bash",
+  "tool_use_id": "toolu_fixture_1",
+  "tool_response": {
+    "stderr": "permission denied: Authorization: Bearer abcdefghijklmnopqrstuvwxyz",
+    "stdout": ""
+  }
+}

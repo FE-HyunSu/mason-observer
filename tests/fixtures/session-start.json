@@ -1,0 +1,6 @@
+{
+  "session_id": "sess-fixture-001",
+  "cwd": "__PROJECT_ROOT__",
+  "hook_event_name": "SessionStart",
+  "source": "startup"
+}
