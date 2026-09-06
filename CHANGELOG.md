@@ -3,6 +3,24 @@
 이 프로젝트는 [Keep a Changelog](https://keepachangelog.com/) 형식을 따르려 하며,
 버전은 태그 기반([릴리스 체크리스트](./README.md#릴리스-체크리스트-태그-기반-버전-관리) 참고)으로 관리한다.
 
+## [0.1.1] - 2026-09-06
+
+### Changed
+
+- `/mason-observer:inspect-last`, `/mason-observer:inspect-session`의 출력 포맷을
+  고정된 8개 h2 섹션 방식에서, "사용자 프롬프트 한 줄 인용 → 그 턴에 대한 설명 → 다음
+  프롬프트" 순서로 이어지는 내러티브 스타일로 변경했다(가독성 개선 피드백 반영).
+  `observed`/`inferred`/`unknown` 태그와 Skill/Rule 적용 등급 구분은 그대로 유지된다.
+- `examples/sample-report.md`를 새 포맷에 맞춰 갱신했다.
+
+### Considered and rejected
+
+- 리포트에 이번 요청의 토큰 사용량을 표시하는 기능을 검토했으나, Hook 이벤트 JSON에는
+  토큰 필드가 전혀 없고, Claude Code의 공식 토큰/비용 데이터(`statusline`)는 세션
+  누적치이거나 "가장 최근 API 호출 1건"의 스냅샷이라 "이번 턴에 정확히 사용된 토큰"을
+  나타낼 수 없어 구현하지 않기로 했다. 또한 현재 우선순위(리포트 가독성)와도 무관해
+  범위에서 제외했다.
+
 ## [0.1.0] - Unreleased
 
 ### Added
