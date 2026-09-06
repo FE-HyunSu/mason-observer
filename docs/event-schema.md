@@ -20,11 +20,20 @@ mason-observer는 Claude Code 공식 Hook 이벤트의 원본 페이로드를 �
 }
 ```
 
-- `promptId`는 Claude Code의 공식 문서상 **v2.1.196 이상**에서만 채워진다(`prompt_id`
-  common field, "Absent until the first user input. Requires Claude Code v2.1.196 or
-  later"). 그보다 낮은 버전에서는 `undefined`일 수 있으며, 그 경우 `read-events.js`는
-  `promptId` 대신 이벤트 발생 시간 구간으로 턴을 추정 연결한다(약한 연결 — 리포트에서
-  `inferred`로 표시해야 함).
+- `promptId`에 대해 공식 문서(`code.claude.com/docs/en/hooks.md`)는 "`prompt_id` common
+  field... Absent until the first user input. Requires Claude Code v2.1.196 or later"라고
+  적고 있다. 그러나 **이 문서 기재 내용은 실측으로 반증됐다**: 실제 v2.1.178 설치본(VS Code
+  확장, Agent SDK 백엔드)에서 `SessionStart` 이후 발생한 모든 이벤트(`UserPromptSubmit`,
+  `PreToolUse`, `PostToolUse` 등)에 `promptId`가 정상적으로 채워지는 것을 2026-09-06에
+  직접 확인했다(mason-observer 플러그인을 실제로 설치해 `.mason-observer/events/`에 기록된
+  로그를 직접 열어본 결과). 즉 이 필드는 문서에 적힌 것보다 더 이른 버전부터 채워지거나,
+  최소한 클라이언트 표면(터미널 vs VS Code 확장 vs Agent SDK)에 따라 문서와 다르게 동작할
+  수 있다. 정확한 최소 지원 버전은 여전히 불확실하므로, `promptId`가 채워지지 않는 경우를
+  대비한 시간 구간 기반 폴백(아래)은 계속 유지한다 — 다만 "v2.1.196 미만에서는 항상 비어
+  있다"는 이전 서술은 더 이상 신뢰할 수 없다.
+- `promptId`가 비어 있는 경우(위 실측과 무관하게, 다른 클라이언트/버전 조합에서는 여전히
+  발생할 수 있음) `read-events.js`는 `promptId` 대신 이벤트 발생 시간 구간으로 턴을 추정
+  연결한다(약한 연결 — 리포트에서 `inferred`로 표시해야 함).
 - `redaction.count`는 `capture-event.js`가 마스킹 규칙을 적용해 치환한 총 횟수다. 0이면
   "이 이벤트에서 마스킹 대상이 발견되지 않았다"는 뜻이지 "마스킹 로직이 비활성화됐다"는
   뜻이 아니다.
