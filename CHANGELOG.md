@@ -29,6 +29,9 @@
 
 ### Known limitations
 
-- 실제 Claude Code CLI 프로세스를 통한 end-to-end 검증은 수행하지 못했다(개발 환경에
-  동작하는 CLI 바이너리가 설치되어 있지 않았음). 스크립트 단위 테스트와 수동 스크립트
-  실행으로만 검증됨. 자세한 내용은 `docs/limitations.md` 참고.
+- 2026-09-06에 실제 Claude Code(v2.1.178, VS Code 확장)에 설치해 end-to-end 검증을
+  완료했다(Hook 발화, 이벤트 기록, 마스킹, `sessionId`/`promptId` 상관관계, `/mason-observer:status`
+  실행까지 확인). 다만 `/reload-plugins`가 보고한 "1 error during load"의 정확한 원인은
+  아직 확인하지 못했다. 또한 이 실측 과정에서 `promptId`의 최소 지원 버전에 대한 공식
+  문서 기재(v2.1.196 이상)가 실제와 다르다는 것을 발견해 문서를 정정했다. 자세한 내용은
+  `docs/limitations.md` 참고.

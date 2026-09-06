@@ -1,63 +1,46 @@
 # mason-observer
 
-**mason-observer** is an open-source Claude Code plugin that observes Claude Code's
-execution through official Hooks and reconstructs how a request was handled —
-using only observable evidence (prompts, tool calls, file paths, subagent
-activity, the final answer). It never extracts Claude's private
-chain-of-thought, makes no network calls, and stores everything locally under
-your project's `.mason-observer/` directory. Full documentation below is in
-Korean; see [docs/](./docs) for architecture, event schema, privacy, and
-limitations.
+**mason-observer** is an open-source Claude Code plugin that observes Claude Code's execution through official Hooks and reconstructs how a request was handled — using only observable evidence (prompts, tool calls, file paths, subagent activity, the final answer). It never extracts Claude's private chain-of-thought, makes no network calls, and stores everything locally under your project's `.mason-observer/` directory.
+
+한국어 문서는 [README_ko.md](./README_ko.md)를 참고하세요.
 
 ---
 
-## 1. 프로젝트 소개
+## 1. Introduction
 
-`mason-observer`는 Claude Code의 실행 과정을 **공식 Hook**을 통해 관찰하고, 그 관찰
-증거만으로 "Claude가 이번 요청을 어떻게 처리했는지"를 재구성하는 오픈소스 Claude Code
-Plugin이다. 별도 서버나 외부 LLM 호출 없이, 이미 설치된 Claude Code 자신이 로그를 읽고
-분석 리포트를 작성한다.
+`mason-observer` is an open-source Claude Code plugin that observes Claude Code's execution through **official Hooks**, and reconstructs — from that observed evidence alone — how Claude handled a given request. It makes no external LLM calls and runs no server: Claude Code itself reads the logs and writes the analysis report.
 
-## 2. 해결하려는 문제
+## 2. The problem it addresses
 
-Claude Code는 하나의 요청을 처리하면서 여러 Tool을 호출하고, 파일을 읽거나 수정하고,
-때로는 Subagent를 실행한다. 이 과정은 대화창에서 지나가듯 스쳐 사라지고, "왜 이런
-선택을 했는지", "실제로 어떤 파일들을 건드렸는지", "어떤 지침이 적용됐는지"를 나중에
-정확히 재구성하기 어렵다. `mason-observer`는 이 실행 과정의 **관찰 가능한 부분**을 로컬에
-기록하고, 나중에 그 기록만으로 사실과 추정을 구분해 설명해주는 도구다.
+While handling one request, Claude Code calls multiple tools, reads or edits files, and sometimes spawns subagents. That process flashes by in the chat transcript and is hard to reconstruct precisely afterward — which files were actually touched, which instructions applied, why a particular approach was taken. `mason-observer` records the **observable** part of that execution locally, then later explains it from that record alone, carefully separating fact from inference.
 
-## 3. 확인할 수 있는 정보
+## 3. What can be confirmed
 
-- 사용자가 입력한 프롬프트(마스킹·길이 제한 적용)
-- 세션/프롬프트 식별자
-- 로드된 `CLAUDE.md` 등 지침 파일의 **경로**
-- 호출된 Tool 이름과 최소한의 입력 요약(예: Bash 명령, 파일 경로)
-- Tool 실행 결과의 안전한 요약(성공/실패, 마스킹·길이 제한된 텍스트 또는 구조 요약)
-- 읽거나 수정한 파일 **경로**
-- 실행된 Bash 명령(마스킹 적용)
-- Subagent 실행 흔적(유형, 식별자)
-- Claude의 최종 답변(마스킹·길이 제한 적용)
-- 위 사실들을 바탕으로 재구성한, "observed/inferred/unknown"으로 구분된 판단 근거
+- The user's submitted prompt (masked, length-limited)
+- Session/prompt identifiers
+- The **paths** of loaded instruction files such as `CLAUDE.md`
+- Tool names called, and a minimal input summary (e.g. a Bash command, a file path)
+- A safe summary of each tool's result (success/failure, masked and length-limited text or a structural summary)
+- **Paths** of files read or modified
+- Bash commands executed (masked)
+- Subagent execution traces (type, identifier)
+- Claude's final answer (masked, length-limited)
+- Reconstructed reasoning built from the above, explicitly labeled `observed` / `inferred` / `unknown`
 
-## 4. 확인할 수 없는 정보
+## 4. What cannot be confirmed
 
-- Claude의 비공개 chain-of-thought, 모델 내부 후보 비교 과정
-- 로그에 기록되지 않은 판단 이유(추정은 가능하나 확정할 수 없음)
-- 파일의 전체 내용, 원본 diff, Tool 결과 원문 전체(정책상 저장하지 않음)
-- Skill 파일이 컨텍스트에 로드된 것과 실제로 그 Skill의 절차가 적용됐는지의 완전한 구분
-  (증거 등급으로만 추정 가능)
+- Claude's private chain-of-thought, or the model's internal comparison of candidate approaches
+- Any reasoning not reflected in the logs (can be inferred, never confirmed)
+- Full file contents, original diffs, or complete raw tool output (not stored, by policy)
+- The full distinction between a Skill file being loaded into context and that Skill's procedure actually having been followed (only estimable via evidence tiers)
 
-자세한 한계는 [docs/limitations.md](./docs/limitations.md) 참고.
+See [docs/limitations.md](./docs/limitations.md) for the complete list.
 
-## 5. Claude의 비공개 chain-of-thought를 제공하지 않는다는 점
+## 5. It does not provide Claude's private chain-of-thought
 
-**mason-observer는 Claude의 비공개 내부 추론을 추출하거나 우회 노출하는 도구가 아니다.**
-모든 분석은 Hook과 transcript에서 공식적으로 노출되는 관찰 가능한 사실에만 근거하며,
-리포트는 "Claude가 이렇게 생각했다"라고 단정하지 않고 "관찰된 행동을 보면 이렇게 판단한
-것으로 추정된다"는 식으로만 서술하도록 설계되어 있다(`skills/decision-analysis/SKILL.md`
-참고).
+**mason-observer is not a tool for extracting or bypassing Claude's private internal reasoning.** Every analysis is grounded only in facts officially exposed through Hooks and the transcript. Reports are designed to never assert "Claude thought this," and instead phrase things as "based on the observed behavior, it appears Claude judged X" (see `skills/decision-analysis/SKILL.md`).
 
-## 6. 동작 구조
+## 6. How it works
 
 ```text
 User Prompt
@@ -71,183 +54,210 @@ User Prompt
   → Mason Observer Report
 ```
 
-자세한 내용은 [docs/architecture.md](./docs/architecture.md) 참고.
+See [docs/architecture.md](./docs/architecture.md) for details.
 
-## 7. 수집되는 Hook 이벤트
+## 7. Hook events collected
 
-공식 문서(`code.claude.com/docs/en/hooks.md`)에서 현재 지원을 확인한 아래 10개 이벤트만
-사용한다:
+Only the following 10 events are used, each confirmed as currently supported in the official docs (`code.claude.com/docs/en/hooks.md`):
 
-`SessionStart`, `UserPromptSubmit`, `InstructionsLoaded`, `PreToolUse`, `PostToolUse`,
-`PostToolUseFailure`, `SubagentStart`, `SubagentStop`, `Stop`, `SessionEnd`
+`SessionStart`, `UserPromptSubmit`, `InstructionsLoaded`, `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `SubagentStart`, `SubagentStop`, `Stop`, `SessionEnd`
 
-이벤트별로 저장되는 정확한 필드는 [docs/event-schema.md](./docs/event-schema.md)에
-정의되어 있다. **Hook은 어떤 경우에도 Tool 호출을 차단하거나, Claude/Tool의 입력을
-수정하거나, stdout으로 무언가를 출력하지 않는다** — 순수 관찰자로만 동작한다.
+The exact fields stored per event are defined in [docs/event-schema.md](./docs/event-schema.md). **Under no circumstances does a hook block a tool call, modify Claude's or a tool's input, or print anything to stdout** — it is a pure observer.
 
-## 8. 설치 방법
+## 8. Requirements
 
-### 8.1. 요구 사항
+- Claude Code, a version that supports Plugins/Marketplaces/Hooks (see [§17](#17-supported-claude-code-versions))
+- Node.js 18+ (the hook/query scripts are plain Node.js and run without any extra install step)
+- macOS, Linux, or Windows
 
-- Claude Code (Plugin/Marketplace/Hooks 기능을 지원하는 버전 — [§17](#17-지원-claude-code-버전) 참고)
-- Node.js 18 이상 (Hook/조회 스크립트가 Node.js로 작성되어 있으며, 별도 설치 없이
-  실행됨)
-- macOS, Linux, 또는 Windows
+Before doing anything else, confirm your `claude` actually runs:
 
-### 8.2. 로컬에서 바로 테스트하기 (마켓플레이스 등록 없이)
-
-저장소를 clone한 뒤, Claude Code에서 로컬 경로를 마켓플레이스로 추가할 수 있다:
-
-```text
-/plugin marketplace add /path/to/mason-observer
-/plugin install mason-observer@mason-observer
+```bash
+claude --version
 ```
 
-## 9. GitHub Marketplace 등록 방법
+This must print a real version string (e.g. `2.1.178 (Claude Code)`). If you use `nvm` with several Node versions, each version keeps its own separate global npm install of `@anthropic-ai/claude-code` — an incomplete install manifests as a tiny placeholder script that errors with "claude native binary not installed." If that happens, either switch to a Node version with a working install, or reinstall cleanly:
 
-1. 이 저장소를 GitHub에 공개 저장소로 push한다(`.claude-plugin/marketplace.json`이
-   저장소 루트에 있어야 한다).
-2. `.claude-plugin/marketplace.json`의 `name`, `owner.name`, 각 플러그인 항목의
-   `author`, `homepage`, `repository` 등에 있는 `fe-hyunsu`,
-   `mason-observer` placeholder를 실제 값으로 교체한다.
-3. 태그를 눌러 버전을 명시적으로 관리한다([§ 릴리스 체크리스트](#릴리스-체크리스트-태그-기반-버전-관리) 참고).
-
-## 10. 플러그인 설치 방법
-
-마켓플레이스가 GitHub에 등록된 이후에는 다른 사용자가 아래처럼 설치한다:
-
-```text
-/plugin marketplace add fe-hyunsu/mason-observer
-/plugin install mason-observer@mason-observer
+```bash
+npm install -g @anthropic-ai/claude-code
 ```
 
-설치 후 `/mason-observer:status`로 정상 동작 여부를 확인한다.
+## 9. Publishing your own marketplace on GitHub
 
-## 11. `/mason-observer:inspect-last` 사용 방법
+If you're maintaining a fork or your own copy of this plugin:
 
-가장 최근에 완료된 사용자 턴을 관찰 증거만으로 재구성한 리포트를 생성한다.
+1. Push this repository to GitHub as a **public** repo (`.claude-plugin/marketplace.json` must sit at the repo root).
+2. Replace the `name`/`owner.name` in `.claude-plugin/marketplace.json`, and the `author`/`homepage`/`repository` fields in each plugin entry and in `plugins/mason-observer/.claude-plugin/plugin.json`, with your own values.
+3. Tag releases explicitly (see the [release checklist](#release-checklist-tag-based-versioning) below).
+
+## 10. Installing the plugin
+
+Once the marketplace repo is public, anyone can install it — but **how you type the install commands depends on where you're running Claude Code.** This is the part that trips people up most, so read this table first:
+
+| Where Claude Code is running | What to type | Where to type it |
+|---|---|---|
+| A normal terminal shell, Claude Code not already running interactively | `claude plugin marketplace add fe-hyunsu/mason-observer`, then `claude plugin install mason-observer@mason-observer` | Directly at the shell prompt — **no leading `/`**. These are ordinary CLI subcommands of the `claude` binary, not slash commands, so a plain shell understands them. |
+| Interactive terminal REPL (you already ran `claude` and are inside its own prompt) | `/plugin marketplace add fe-hyunsu/mason-observer`, then `/plugin install mason-observer@mason-observer` | Inside that session's own input box. |
+| VS Code extension | `/plugins` (**plural** — `/plugin` singular is not available on this surface) | In the chat box; it opens a GUI dialog where you add the marketplace and install from there. |
+| A surface with no interactive UI at all (cloud sessions, headless/CI) | Declare it in `.claude/settings.json` (see below) | It's a config file, not something you type. |
+
+### Step by step (shell command — works almost everywhere, recommended)
+
+1. Confirm Claude Code works (see [§8](#8-requirements)): `claude --version`.
+
+2. Add the marketplace and install the plugin:
+   ```bash
+   claude plugin marketplace add fe-hyunsu/mason-observer
+   claude plugin install mason-observer@mason-observer
+   ```
+   The part before `@` is the **plugin name**; the part after `@` is the **marketplace name**. In this repo both happen to be the string `mason-observer` — that's a naming coincidence, not a rule, so don't read the repeated word as a typo.
+
+3. **Activate it in a session that's already open.** A shell-level install does not automatically show up in a Claude Code session you already had running (for example, a VS Code chat panel open before you ran the command above). Inside that already-open session, run:
+   ```
+   /reload-plugins
+   ```
+   A brand-new session started *after* the install will load the plugin automatically — no reload needed there.
+
+4. **Verify it's actually active:**
+   ```
+   /mason-observer:status
+   ```
+   If this returns a real status report instead of "unknown command," it's active. Send a couple of ordinary prompts or tool calls, then run `/mason-observer:status` again — `totalEvents` should now be greater than 0.
+
+### Alternative: declare it in `.claude/settings.json` (no interactive step needed)
+
+Useful for team setups, or any environment without an interactive UI:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "mason-observer": {
+      "source": { "source": "github", "repo": "fe-hyunsu/mason-observer" }
+    }
+  },
+  "enabledPlugins": {
+    "mason-observer@mason-observer": true
+  }
+}
+```
+
+### Testing locally without publishing anywhere
+
+```bash
+claude plugin marketplace add ./path/to/mason-observer
+claude plugin install mason-observer@mason-observer
+```
+(the same shell-vs-REPL-vs-VS-Code distinction from the table above still applies)
+
+## 11. Using `/mason-observer:inspect-last`
+
+Reconstructs a report of the most recently completed user turn, using observed evidence only.
 
 ```text
 /mason-observer:inspect-last
 ```
 
-출력 형식과 예시는 [examples/sample-report.md](./examples/sample-report.md) 참고.
+See [examples/sample-report.md](./examples/sample-report.md) for the output format and a worked example.
 
-## 12. `/mason-observer:inspect-session` 사용 방법
+## 12. Using `/mason-observer:inspect-session`
 
-현재 세션 전체(턴 목록, Tool 사용 패턴, 실패, 로드된 지침, Skill 적용 추정 등)를 요약한다.
+Summarizes the entire current session: turn list, tool usage patterns, failures, loaded instructions, estimated Skill usage, and so on.
 
 ```text
 /mason-observer:inspect-session
 ```
 
-## 13. `/mason-observer:status` 사용 방법
+## 13. Using `/mason-observer:status`
 
-로그 수집 상태(위치, 최근 이벤트, 세션 수, 마스킹 적용 여부, 로그 크기, 지원 Hook 목록,
-진단 경고)를 표시한다.
+Shows log collection status: location, most recent event, session count, whether masking has been applied, log size, supported hook events, and diagnostic warnings.
 
 ```text
 /mason-observer:status
 ```
 
-## 14. 로그 저장 위치
+## 14. Where logs are stored
 
 ```text
 <project-root>/.mason-observer/
-├── events/    # Hook 이벤트 JSONL
-├── reports/   # (예약됨 — 향후 리포트 저장용)
-├── state/     # 내부 상태(예: .gitignore 보강 여부 마커)
-└── config.json  # (예약됨 — 향후 설정용)
+├── events/    # Hook event JSONL
+├── reports/   # (reserved — for future report storage)
+├── state/     # internal state (e.g. a marker for whether .gitignore was already patched)
+└── config.json  # (reserved — for future configuration)
 ```
 
-플러그인 설치 디렉터리나 플러그인 캐시에는 어떤 로그도 저장하지 않는다. 프로젝트
-루트를 안전하게 확인할 수 없는 경우(`CLAUDE_PROJECT_DIR`도 없고 Hook의 `cwd`도 유효한
-디렉터리가 아닌 경우) 아무 곳에도 기록하지 않는다.
+No log is ever written to the plugin's install directory or plugin cache. If the project root can't be safely determined (no `CLAUDE_PROJECT_DIR` and no valid `cwd` in the hook input), nothing is written anywhere.
 
-## 15. 로그 삭제 방법
+## 15. Deleting logs
 
 ```bash
 rm -rf .mason-observer/
 ```
 
-위 명령은 사용자가 자신의 프로젝트에서 직접 실행하는 일반적인 파일 삭제이며,
-`mason-observer`는 자체적으로 원격 삭제나 별도 삭제 API를 제공하지 않는다.
+This is an ordinary file deletion you run yourself in your own project; `mason-observer` provides no remote-deletion feature or separate deletion API of its own.
 
-## 16. 개인정보 및 보안 정책
+## 16. Privacy and security policy
 
-- 기본적으로 **네트워크를 사용하지 않는다.**
-- 파일 내용은 저장하지 않고 경로와 작업 유형만 저장한다(`.env` 포함).
-- API Key, Access/Bearer Token, Authorization/Cookie 헤더, 비밀번호, PEM/Private Key,
-  AWS/GitHub/Anthropic/OpenAI 토큰 등은 저장 전에 마스킹된다.
-- Tool 결과는 원문 전체가 아닌 안전한 요약만, 크기 제한을 두어 저장한다.
-- 로그 크기와 보관 개수를 제한한다(파일당 약 5MB, 프로젝트당 파일 개수 제한).
-- `.mason-observer/`가 프로젝트 외부를 가리키는 심볼릭 링크이면 쓰기를 거부한다.
-- `.gitignore`에 `.mason-observer/`가 없으면 기존 내용을 보존한 채로만 안전하게 추가한다.
-- Hook 실패나 분석 실패가 Claude Code의 정상 작업을 절대 막지 않는다.
+- **No network access, by default.**
+- File content is never stored — only paths and operation types (this includes `.env` files).
+- API keys, access/bearer tokens, Authorization/Cookie headers, passwords, PEM/private keys, and AWS/GitHub/Anthropic/OpenAI-style tokens are masked before anything is written to disk.
+- Tool results are stored as safe, size-limited summaries, never as raw full output.
+- Log size and retention count are capped (roughly 5MB per file, with a cap on the number of files per project).
+- If `.mason-observer/` is a symlink pointing outside the project root, writes are refused.
+- If `.mason-observer/` is missing from `.gitignore`, it's added safely — existing content is preserved.
+- A hook failure, or an analysis failure, never blocks Claude Code's normal operation.
 
-자세한 내용은 [docs/privacy.md](./docs/privacy.md) 참고.
+See [docs/privacy.md](./docs/privacy.md) for details.
 
-## 17. 지원 Claude Code 버전
+## 17. Supported Claude Code versions
 
-이 플러그인은 공식 문서(`code.claude.com/docs/en/`)에서 현재 확인 가능한 Plugin /
-Marketplace / Hooks / Skill 규격을 기준으로 작성했다. 개발 환경에는 실제로 동작하는
-Claude Code CLI 바이너리가 설치되어 있지 않아(npm wrapper 패키지만 존재, 네이티브
-바이너리는 미설치 상태), **실제 Claude Code 프로세스를 통한 end-to-end 검증은 하지
-못했다.** 아래 버전 의존성은 문서 기반으로 확인한 것이다:
+This plugin was built against the Plugin / Marketplace / Hooks / Skill specifications currently documented at `code.claude.com/docs/en/`.
 
-- Plugin/Marketplace/Hooks/Skill 기본 구조: 문서상 안정적으로 지원됨.
-- `prompt_id`(턴 연결에 사용) — **Claude Code v2.1.196 이상 필요.** 그보다 낮은
-  버전에서는 시간 구간 기반의 약한 추정으로 대체된다.
-- `UserPromptSubmit`의 프롬프트 텍스트 필드명은 문서 원문을 완전히 재확인하지 못해
-  방어적으로 여러 후보 필드명을 시도하도록 구현했다(자세한 내용은
-  [docs/event-schema.md](./docs/event-schema.md)).
+**On 2026-09-06, this plugin was installed into a real Claude Code instance (v2.1.178, VS Code extension + Agent SDK backend) via `claude plugin marketplace add` / `claude plugin install`, and verified end-to-end** by running `/reload-plugins` followed by `/mason-observer:status`. `SessionStart`, `UserPromptSubmit`, `PreToolUse`, and `PostToolUse` events were confirmed to be recorded correctly in `.mason-observer/events/`, and `sessionId`/`promptId` correlation, the masking pipeline, and project-relative path conversion were all confirmed against real, live logs.
 
-설치 후 `/mason-observer:status`를 실행해 실제 환경에서 이벤트가 정상적으로 수집되는지
-직접 확인할 것을 권장한다.
+- Plugin/Marketplace/Hooks/Skill core structure: confirmed both in the docs and via a real install and load.
+- `prompt_id` (used for turn correlation) — the official docs state "requires Claude Code v2.1.196 or later," but **it was observed to be populated correctly on v2.1.178.** This documented minimum version requirement therefore does not match reality; the true minimum is left as unknown. The time-window-based fallback (for when `promptId` is absent) is still kept regardless.
+- The `UserPromptSubmit` prompt-text field name (`prompt`) was confirmed populated correctly in real logs (see [docs/event-schema.md](./docs/event-schema.md) for details).
+- `/reload-plugins` reported "1 error during load," but since the loaded component counts (1 plugin · 4 skills · 10 hooks) exactly matched what this plugin declares, that error is likely unrelated to mason-observer itself — though the exact cause was not confirmed (unknown). The VS Code extension doesn't expose a `/plugin` Errors tab, so confirming the cause requires an interactive terminal `claude` session's `/plugin` → Errors tab, or `claude plugin details mason-observer`.
 
-## 18. 알려진 한계
+Running `/mason-observer:status` after installing is the recommended way to directly confirm events are being collected correctly in your own environment.
 
-[docs/limitations.md](./docs/limitations.md)에 전체 목록이 있다. 핵심 요약:
+## 18. Known limitations
 
-- chain-of-thought/모델 내부 후보 비교 과정은 원천적으로 접근 불가.
-- 파일 접근/지침 로드가 "실제 적용"을 의미하지는 않음.
-- Observer(리포트 생성 과정)도 Claude의 해석이므로 오류 가능.
-- 마스킹은 알려진 패턴 기반이라 완전하지 않음.
-- 실제 Claude Code 프로세스를 통한 end-to-end 검증 미실시(위 §17 참고).
+The full list is in [docs/limitations.md](./docs/limitations.md). Key points:
 
-## 19. 개발 및 테스트 방법
+- Chain-of-thought and the model's internal comparison of candidates are fundamentally inaccessible.
+- A file being accessed, or an instruction being loaded, does not mean it was actually applied.
+- The Observer's own analysis (the report-generation step) is also Claude's interpretation, and can itself be wrong.
+- Masking is pattern-based and therefore not exhaustive.
+- End-to-end verification against a real Claude Code process has now been done (see §17 above), but the exact cause of the "1 error during load" reported by `/reload-plugins` remains unconfirmed (unknown).
+
+## 19. Development and testing
 
 ```bash
 git clone https://github.com/fe-hyunsu/mason-observer.git
 cd mason-observer
 
-npm test        # Node.js 내장 테스트 러너로 단위/통합 테스트 실행
-npm run validate # 매니페스트/hooks.json/Command·Skill frontmatter/스크립트 문법 검사 + 테스트 실행
+npm test         # run unit/integration tests via Node's built-in test runner
+npm run validate # check the manifests/hooks.json/command & skill frontmatter/script syntax, then run tests
 ```
 
-외부 의존성 없이 Node.js 표준 라이브러리와 `node:test`만 사용한다.
+No external dependencies — only the Node.js standard library and `node:test`.
 
-## 20. 기여 방법
+## 20. Contributing
 
-1. 이슈를 먼저 열어 논의한다(특히 Hook 이벤트 추가나 마스킹 규칙 변경처럼 개인정보에
-   영향을 주는 변경).
-2. 이 저장소를 fork하고 브랜치를 만든다.
-3. `npm run validate`가 통과하는지 확인한 뒤 PR을 연다.
-4. 마스킹 규칙을 추가/변경하는 PR은 반드시 대응하는 테스트(`tests/redact.test.js`)를
-   포함해야 한다.
-5. 보안 취약점은 공개 이슈 대신 저장소 owner에게 비공개로 먼저 알려줄 것을 권장한다
-   (연락 방법은 `fe-hyunsu`의 GitHub 프로필 참고— 저장소 공개 시 구체적인
-   보안 연락처를 이 절에 채워 넣을 것).
+1. Open an issue first to discuss, especially for changes with privacy implications (adding a hook event, changing masking rules).
+2. Fork the repo and create a branch.
+3. Make sure `npm run validate` passes before opening a PR.
+4. A PR that adds or changes masking rules must include a corresponding test in `tests/redact.test.js`.
+5. Please report security vulnerabilities privately to the repo owner rather than as a public issue (see the GitHub profile for `fe-hyunsu` for contact — fill in a concrete security contact here once the repo is public).
 
-### 릴리스 체크리스트 (태그 기반 버전 관리)
+### Release checklist (tag-based versioning)
 
-- [ ] `npm test`, `npm run validate` 통과
-- [ ] `CHANGELOG.md`에 변경 사항 기록
-- [ ] `.claude-plugin/marketplace.json`과 `plugins/mason-observer/.claude-plugin/plugin.json`의
-      `version` 필드를 함께 올림
-- [ ] `git tag vX.Y.Z` 후 push (Marketplace의 `github` source 타입은 `ref`로 특정
-      태그/브랜치를 고정할 수 있음)
+- [ ] `npm test` and `npm run validate` pass
+- [ ] Changes recorded in `CHANGELOG.md`
+- [ ] `version` bumped together in `.claude-plugin/marketplace.json` and `plugins/mason-observer/.claude-plugin/plugin.json`
+- [ ] `git tag vX.Y.Z` and push (a marketplace's `github` source type can pin a specific tag/branch via `ref`)
 
-## 21. 라이선스
+## 21. License
 
 [MIT License](./LICENSE)
