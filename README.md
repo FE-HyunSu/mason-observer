@@ -6,67 +6,11 @@
 
 ---
 
-## 1. Introduction
+## Quick Start
 
-`mason-observer` is an open-source Claude Code plugin that observes Claude Code's execution through **official Hooks**, and reconstructs — from that observed evidence alone — how Claude handled a given request. It makes no external LLM calls and runs no server: Claude Code itself reads the logs and writes the analysis report.
+### Requirements
 
-## 2. The problem it addresses
-
-While handling one request, Claude Code calls multiple tools, reads or edits files, and sometimes spawns subagents. That process flashes by in the chat transcript and is hard to reconstruct precisely afterward — which files were actually touched, which instructions applied, why a particular approach was taken. `mason-observer` records the **observable** part of that execution locally, then later explains it from that record alone, carefully separating fact from inference.
-
-## 3. What can be confirmed
-
-- The user's submitted prompt (masked, length-limited)
-- Session/prompt identifiers
-- The **paths** of loaded instruction files such as `CLAUDE.md`
-- Tool names called, and a minimal input summary (e.g. a Bash command, a file path)
-- A safe summary of each tool's result (success/failure, masked and length-limited text or a structural summary)
-- **Paths** of files read or modified
-- Bash commands executed (masked)
-- Subagent execution traces (type, identifier)
-- Claude's final answer (masked, length-limited)
-- Reconstructed reasoning built from the above, explicitly labeled `observed` / `inferred` / `unknown`
-
-## 4. What cannot be confirmed
-
-- Claude's private chain-of-thought, or the model's internal comparison of candidate approaches
-- Any reasoning not reflected in the logs (can be inferred, never confirmed)
-- Full file contents, original diffs, or complete raw tool output (not stored, by policy)
-- The full distinction between a Skill file being loaded into context and that Skill's procedure actually having been followed (only estimable via evidence tiers)
-
-See [docs/limitations.md](./docs/limitations.md) for the complete list.
-
-## 5. It does not provide Claude's private chain-of-thought
-
-**mason-observer is not a tool for extracting or bypassing Claude's private internal reasoning.** Every analysis is grounded only in facts officially exposed through Hooks and the transcript. Reports are designed to never assert "Claude thought this," and instead phrase things as "based on the observed behavior, it appears Claude judged X" (see `skills/decision-analysis/SKILL.md`).
-
-## 6. How it works
-
-```text
-User Prompt
-  → UserPromptSubmit Hook
-  → Claude Agent Loop
-  → Tool/Subagent Hooks
-  → Stop Hook
-  → Local JSONL (.mason-observer/events/)
-  → inspect Command
-  → decision-analysis Skill
-  → Mason Observer Report
-```
-
-See [docs/architecture.md](./docs/architecture.md) for details.
-
-## 7. Hook events collected
-
-Only the following 10 events are used, each confirmed as currently supported in the official docs (`code.claude.com/docs/en/hooks.md`):
-
-`SessionStart`, `UserPromptSubmit`, `InstructionsLoaded`, `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `SubagentStart`, `SubagentStop`, `Stop`, `SessionEnd`
-
-The exact fields stored per event are defined in [docs/event-schema.md](./docs/event-schema.md). **Under no circumstances does a hook block a tool call, modify Claude's or a tool's input, or print anything to stdout** — it is a pure observer.
-
-## 8. Requirements
-
-- Claude Code, a version that supports Plugins/Marketplaces/Hooks (see [§17](#17-supported-claude-code-versions))
+- Claude Code, a version that supports Plugins/Marketplaces/Hooks (see [Supported Claude Code versions](#supported-claude-code-versions))
 - Node.js 18+ (the hook/query scripts are plain Node.js and run without any extra install step)
 - macOS, Linux, or Windows
 
@@ -76,23 +20,15 @@ Before doing anything else, confirm your `claude` actually runs:
 claude --version
 ```
 
-This must print a real version string (e.g. `2.1.178 (Claude Code)`). If you use `nvm` with several Node versions, each version keeps its own separate global npm install of `@anthropic-ai/claude-code` — an incomplete install manifests as a tiny placeholder script that errors with "claude native binary not installed." If that happens, either switch to a Node version with a working install, or reinstall cleanly:
+This must print a real version string (e.g. `2.1.178 (Claude Code)`). If you use `nvm` with several Node versions, each version keeps its own separate global npm install of `@anthropic-ai/claude-code` — an incomplete install manifests as a tiny placeholder script that errors with "claude native binary not installed," or a `permission denied` error if it's not marked executable. If that happens, run `nvm use <a version with a working install>` (and `nvm alias default <that version>` to make it stick), or reinstall cleanly:
 
 ```bash
 npm install -g @anthropic-ai/claude-code
 ```
 
-## 9. Publishing your own marketplace on GitHub
+### Install
 
-If you're maintaining a fork or your own copy of this plugin:
-
-1. Push this repository to GitHub as a **public** repo (`.claude-plugin/marketplace.json` must sit at the repo root).
-2. Replace the `name`/`owner.name` in `.claude-plugin/marketplace.json`, and the `author`/`homepage`/`repository` fields in each plugin entry and in `plugins/mason-observer/.claude-plugin/plugin.json`, with your own values.
-3. Tag releases explicitly (see the [release checklist](#release-checklist-tag-based-versioning) below).
-
-## 10. Installing the plugin
-
-Once the marketplace repo is public, anyone can install it — but **how you type the install commands depends on where you're running Claude Code.** This is the part that trips people up most, so read this table first:
+**How you type the install commands depends on where you're running Claude Code.** This is the part that trips people up most, so read this table first:
 
 | Where Claude Code is running | What to type | Where to type it |
 |---|---|---|
@@ -101,9 +37,9 @@ Once the marketplace repo is public, anyone can install it — but **how you typ
 | VS Code extension | `/plugins` (**plural** — `/plugin` singular is not available on this surface) | In the chat box; it opens a GUI dialog where you add the marketplace and install from there. |
 | A surface with no interactive UI at all (cloud sessions, headless/CI) | Declare it in `.claude/settings.json` (see below) | It's a config file, not something you type. |
 
-### Step by step (shell command — works almost everywhere, recommended)
+#### Step by step (shell command — works almost everywhere, recommended)
 
-1. Confirm Claude Code works (see [§8](#8-requirements)): `claude --version`.
+1. Confirm Claude Code works (see [Requirements](#requirements)): `claude --version`.
 
 2. Add the marketplace and install the plugin:
    ```bash
@@ -122,9 +58,21 @@ Once the marketplace repo is public, anyone can install it — but **how you typ
    ```
    /mason-observer:status
    ```
-   If this returns a real status report instead of "unknown command," it's active. Send a couple of ordinary prompts or tool calls, then run `/mason-observer:status` again — `totalEvents` should now be greater than 0.
+   If this returns a real status report instead of "unknown command," it's active.
 
-### Alternative: declare it in `.claude/settings.json` (no interactive step needed)
+#### Updating to a newer version
+
+Because `plugin.json`'s `version` field pins the plugin, a `git push` to this repo alone does **not** update anything you've already installed — you receive updates only when that version string changes, and only after you explicitly refresh:
+
+```bash
+claude plugin marketplace update mason-observer
+claude plugin uninstall mason-observer@mason-observer
+claude plugin install mason-observer@mason-observer
+```
+
+(An uninstall-then-install is the most reliable way to pick up a new version cleanly; a plain re-`install` may just report "already installed.") Then `/reload-plugins` in any session that's already open.
+
+#### Alternative: declare it in `.claude/settings.json` (no interactive step needed)
 
 Useful for team setups, or any environment without an interactive UI:
 
@@ -141,7 +89,7 @@ Useful for team setups, or any environment without an interactive UI:
 }
 ```
 
-### Testing locally without publishing anywhere
+#### Testing locally without publishing anywhere
 
 ```bash
 claude plugin marketplace add ./path/to/mason-observer
@@ -149,9 +97,9 @@ claude plugin install mason-observer@mason-observer
 ```
 (the same shell-vs-REPL-vs-VS-Code distinction from the table above still applies)
 
-## 11. Using `/mason-observer:inspect-last`
+### Commands
 
-Reconstructs a report of the most recently completed user turn, using observed evidence only.
+**`/mason-observer:inspect-last`** — reconstructs a report of the most recently completed user turn, using observed evidence only.
 
 ```text
 /mason-observer:inspect-last
@@ -159,23 +107,19 @@ Reconstructs a report of the most recently completed user turn, using observed e
 
 See [examples/sample-report.md](./examples/sample-report.md) for the output format and a worked example.
 
-## 12. Using `/mason-observer:inspect-session`
-
-Summarizes the entire current session: turn list, tool usage patterns, failures, loaded instructions, estimated Skill usage, and so on.
+**`/mason-observer:inspect-session`** — summarizes the entire current session: turn list, tool usage patterns, failures, loaded instructions, estimated Skill usage, and so on.
 
 ```text
 /mason-observer:inspect-session
 ```
 
-## 13. Using `/mason-observer:status`
-
-Shows log collection status: location, most recent event, session count, whether masking has been applied, log size, supported hook events, and diagnostic warnings.
+**`/mason-observer:status`** — shows log collection status: location, most recent event, session count, whether masking has been applied, log size, supported hook events, and diagnostic warnings.
 
 ```text
 /mason-observer:status
 ```
 
-## 14. Where logs are stored
+### Logs
 
 ```text
 <project-root>/.mason-observer/
@@ -187,7 +131,7 @@ Shows log collection status: location, most recent event, session count, whether
 
 No log is ever written to the plugin's install directory or plugin cache. If the project root can't be safely determined (no `CLAUDE_PROJECT_DIR` and no valid `cwd` in the hook input), nothing is written anywhere.
 
-## 15. Deleting logs
+To delete all logs for a project:
 
 ```bash
 rm -rf .mason-observer/
@@ -195,7 +139,65 @@ rm -rf .mason-observer/
 
 This is an ordinary file deletion you run yourself in your own project; `mason-observer` provides no remote-deletion feature or separate deletion API of its own.
 
-## 16. Privacy and security policy
+---
+
+## Project Details
+
+### What it does and why
+
+`mason-observer` is an open-source Claude Code plugin that observes Claude Code's execution through **official Hooks**, and reconstructs — from that observed evidence alone — how Claude handled a given request. It makes no external LLM calls and runs no server: Claude Code itself reads the logs and writes the analysis report.
+
+While handling one request, Claude Code calls multiple tools, reads or edits files, and sometimes spawns subagents. That process flashes by in the chat transcript and is hard to reconstruct precisely afterward — which files were actually touched, which instructions applied, why a particular approach was taken. `mason-observer` records the **observable** part of that execution locally, then later explains it from that record alone, carefully separating fact from inference.
+
+### What can be confirmed
+
+- The user's submitted prompt (masked, length-limited)
+- Session/prompt identifiers
+- The **paths** of loaded instruction files such as `CLAUDE.md`
+- Tool names called, and a minimal input summary (e.g. a Bash command, a file path)
+- A safe summary of each tool's result (success/failure, masked and length-limited text or a structural summary)
+- **Paths** of files read or modified
+- Bash commands executed (masked)
+- Subagent execution traces (type, identifier)
+- Claude's final answer (masked, length-limited)
+- Reconstructed reasoning built from the above, explicitly labeled `observed` / `inferred` / `unknown`
+
+### What cannot be confirmed
+
+- Claude's private chain-of-thought, or the model's internal comparison of candidate approaches
+- Any reasoning not reflected in the logs (can be inferred, never confirmed)
+- Full file contents, original diffs, or complete raw tool output (not stored, by policy)
+- The full distinction between a Skill file being loaded into context and that Skill's procedure actually having been followed (only estimable via evidence tiers)
+
+See [docs/limitations.md](./docs/limitations.md) for the complete list.
+
+**mason-observer is not a tool for extracting or bypassing Claude's private internal reasoning.** Every analysis is grounded only in facts officially exposed through Hooks and the transcript. Reports are designed to never assert "Claude thought this," and instead phrase things as "based on the observed behavior, it appears Claude judged X" (see `skills/decision-analysis/SKILL.md`).
+
+### How it works
+
+```text
+User Prompt
+  → UserPromptSubmit Hook
+  → Claude Agent Loop
+  → Tool/Subagent Hooks
+  → Stop Hook
+  → Local JSONL (.mason-observer/events/)
+  → inspect Command
+  → decision-analysis Skill
+  → Mason Observer Report
+```
+
+See [docs/architecture.md](./docs/architecture.md) for details.
+
+### Hook events collected
+
+Only the following 10 events are used, each confirmed as currently supported in the official docs (`code.claude.com/docs/en/hooks.md`):
+
+`SessionStart`, `UserPromptSubmit`, `InstructionsLoaded`, `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `SubagentStart`, `SubagentStop`, `Stop`, `SessionEnd`
+
+The exact fields stored per event are defined in [docs/event-schema.md](./docs/event-schema.md). **Under no circumstances does a hook block a tool call, modify Claude's or a tool's input, or print anything to stdout** — it is a pure observer.
+
+### Privacy and security policy
 
 - **No network access, by default.**
 - File content is never stored — only paths and operation types (this includes `.env` files).
@@ -208,7 +210,7 @@ This is an ordinary file deletion you run yourself in your own project; `mason-o
 
 See [docs/privacy.md](./docs/privacy.md) for details.
 
-## 17. Supported Claude Code versions
+### Supported Claude Code versions
 
 This plugin was built against the Plugin / Marketplace / Hooks / Skill specifications currently documented at `code.claude.com/docs/en/`.
 
@@ -221,7 +223,7 @@ This plugin was built against the Plugin / Marketplace / Hooks / Skill specifica
 
 Running `/mason-observer:status` after installing is the recommended way to directly confirm events are being collected correctly in your own environment.
 
-## 18. Known limitations
+### Known limitations
 
 The full list is in [docs/limitations.md](./docs/limitations.md). Key points:
 
@@ -229,9 +231,17 @@ The full list is in [docs/limitations.md](./docs/limitations.md). Key points:
 - A file being accessed, or an instruction being loaded, does not mean it was actually applied.
 - The Observer's own analysis (the report-generation step) is also Claude's interpretation, and can itself be wrong.
 - Masking is pattern-based and therefore not exhaustive.
-- End-to-end verification against a real Claude Code process has now been done (see §17 above). The "1 error during load" it first surfaced was root-caused and fixed in v0.1.2 (a redundant `hooks` field in `plugin.json` — see §17).
+- End-to-end verification against a real Claude Code process has now been done (see [Supported Claude Code versions](#supported-claude-code-versions) above). The "1 error during load" it first surfaced was root-caused and fixed in v0.1.2 (a redundant `hooks` field in `plugin.json`).
 
-## 19. Development and testing
+### Publishing your own marketplace on GitHub
+
+If you're maintaining a fork or your own copy of this plugin:
+
+1. Push this repository to GitHub as a **public** repo (`.claude-plugin/marketplace.json` must sit at the repo root).
+2. Replace the `name`/`owner.name` in `.claude-plugin/marketplace.json`, and the `author`/`homepage`/`repository` fields in each plugin entry and in `plugins/mason-observer/.claude-plugin/plugin.json`, with your own values.
+3. Tag releases explicitly (see the [release checklist](#release-checklist-tag-based-versioning) below).
+
+### Development and testing
 
 ```bash
 git clone https://github.com/fe-hyunsu/mason-observer.git
@@ -243,7 +253,7 @@ npm run validate # check the manifests/hooks.json/command & skill frontmatter/sc
 
 No external dependencies — only the Node.js standard library and `node:test`.
 
-## 20. Contributing
+### Contributing
 
 1. Open an issue first to discuss, especially for changes with privacy implications (adding a hook event, changing masking rules).
 2. Fork the repo and create a branch.
@@ -251,13 +261,13 @@ No external dependencies — only the Node.js standard library and `node:test`.
 4. A PR that adds or changes masking rules must include a corresponding test in `tests/redact.test.js`.
 5. Please report security vulnerabilities privately to the repo owner rather than as a public issue (see the GitHub profile for `fe-hyunsu` for contact — fill in a concrete security contact here once the repo is public).
 
-### Release checklist (tag-based versioning)
+#### Release checklist (tag-based versioning)
 
 - [ ] `npm test` and `npm run validate` pass
 - [ ] Changes recorded in `CHANGELOG.md`
 - [ ] `version` bumped together in `.claude-plugin/marketplace.json` and `plugins/mason-observer/.claude-plugin/plugin.json`
 - [ ] `git tag vX.Y.Z` and push (a marketplace's `github` source type can pin a specific tag/branch via `ref`)
 
-## 21. License
+### License
 
 [MIT License](./LICENSE)
