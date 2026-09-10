@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const MASON_OBSERVER_DIR_NAME = '.mason-observer'
+const MASON_RECAP_DIR_NAME = '.mason-recap'
 const MAX_STDIN_BYTES = 2 * 1024 * 1024 // 2 MiB hard cap on hook input we will even attempt to parse
 const MAX_FIELD_CHARS = 4000 // per-field truncation cap for any stored summary/text
 const MAX_EVENT_FILE_BYTES = 5 * 1024 * 1024 // rotate a per-session file past this size
@@ -18,7 +18,7 @@ const MAX_EVENT_FILES = 50 // keep at most this many rotated event files (projec
  */
 function debugLog(message) {
   try {
-    process.stderr.write(`[mason-observer] ${message}\n`)
+    process.stderr.write(`[mason-recap] ${message}\n`)
   } catch {
     // Never let logging itself throw.
   }
@@ -64,12 +64,12 @@ function resolveProjectRoot(hookInput) {
   return null
 }
 
-function masonObserverRoot(projectRoot) {
-  return path.join(projectRoot, MASON_OBSERVER_DIR_NAME)
+function masonRecapRoot(projectRoot) {
+  return path.join(projectRoot, MASON_RECAP_DIR_NAME)
 }
 
 function logPaths(projectRoot) {
-  const root = masonObserverRoot(projectRoot)
+  const root = masonRecapRoot(projectRoot)
   return {
     root,
     events: path.join(root, 'events'),
@@ -82,7 +82,7 @@ function logPaths(projectRoot) {
 /**
  * Ensure a directory exists. Refuses (returns false) instead of writing
  * through a symlink that escapes the project root, so a symlinked
- * `.mason-observer` (or a subdirectory of it) can never redirect writes outside
+ * `.mason-recap` (or a subdirectory of it) can never redirect writes outside
  * the project.
  */
 function ensureDirSafe(dir, projectRoot) {
@@ -159,14 +159,14 @@ function writeJSONSafe(filePath, value) {
 }
 
 /**
- * Ensure the project's .gitignore excludes .mason-observer/, without clobbering
+ * Ensure the project's .gitignore excludes .mason-recap/, without clobbering
  * existing content. Reads the current file first; only appends when no
  * existing pattern already matches. No-ops safely if .gitignore can't be
  * read or written.
  */
 function ensureGitignoreEntry(projectRoot) {
   const gitignorePath = path.join(projectRoot, '.gitignore')
-  const entry = '.mason-observer/'
+  const entry = '.mason-recap/'
 
   let existing = ''
   try {
@@ -180,13 +180,13 @@ function ensureGitignoreEntry(projectRoot) {
 
   const lines = existing.split(/\r?\n/).map((l) => l.trim())
   const alreadyCovered = lines.some(
-    (l) => l === '.mason-observer' || l === '.mason-observer/' || l === '/.mason-observer' || l === '/.mason-observer/'
+    (l) => l === '.mason-recap' || l === '.mason-recap/' || l === '/.mason-recap' || l === '/.mason-recap/'
   )
   if (alreadyCovered) return true
 
   try {
     const needsLeadingNewline = existing.length > 0 && !existing.endsWith('\n')
-    const addition = (needsLeadingNewline ? '\n' : '') + '\n# mason-observer local logs (added by mason-observer plugin)\n' + entry + '\n'
+    const addition = (needsLeadingNewline ? '\n' : '') + '\n# mason-recap local logs (added by mason-recap plugin)\n' + entry + '\n'
     fs.appendFileSync(gitignorePath, addition, 'utf8')
     debugLog(`added ${entry} to .gitignore`)
     return true
@@ -203,7 +203,7 @@ function sessionEventFile(events, sessionId) {
 }
 
 module.exports = {
-  MASON_OBSERVER_DIR_NAME,
+  MASON_RECAP_DIR_NAME,
   MAX_STDIN_BYTES,
   MAX_FIELD_CHARS,
   MAX_EVENT_FILE_BYTES,
@@ -211,7 +211,7 @@ module.exports = {
   debugLog,
   safeJSONParse,
   resolveProjectRoot,
-  masonObserverRoot,
+  masonRecapRoot,
   logPaths,
   ensureDirSafe,
   truncate,

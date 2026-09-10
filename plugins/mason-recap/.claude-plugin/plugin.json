@@ -1,14 +1,14 @@
 {
   "$schema": "https://code.claude.com/schemas/plugin.json",
-  "name": "mason-observer",
-  "displayName": "Mason Observer",
-  "version": "0.1.2",
+  "name": "mason-recap",
+  "displayName": "Mason Recap",
+  "version": "0.1.3",
   "description": "Observes Claude Code's execution via official hooks and reconstructs, from observed evidence only, how a request was handled. Separates observed facts, inferred reasoning, and unknowns. No chain-of-thought extraction, no network I/O.",
   "author": {
     "name": "fe-hyunsu"
   },
-  "homepage": "https://github.com/fe-hyunsu/mason-observer",
-  "repository": "https://github.com/fe-hyunsu/mason-observer",
+  "homepage": "https://github.com/fe-hyunsu/mason-recap",
+  "repository": "https://github.com/fe-hyunsu/mason-recap",
   "license": "MIT",
   "keywords": ["observability", "hooks", "debugging", "transparency", "audit"]
 }

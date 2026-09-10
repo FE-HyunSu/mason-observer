@@ -1,12 +1,12 @@
 ---
-description: 가장 최근에 완료된 사용자 턴을 mason-observer가 수집한 관찰 증거(observed)만으로 재구성하여 Mason Observer Report를 생성합니다.
+description: 가장 최근에 완료된 사용자 턴을 mason-recap가 수집한 관찰 증거(observed)만으로 재구성하여 Mason Recap Report를 생성합니다.
 allowed-tools: Bash, Read
 ---
 
 # 목표
 
 가장 최근에 완료된 사용자 턴(마지막 `UserPromptSubmit`부터 그에 대응하는 `Stop`까지)에 대해,
-`.mason-observer/events/`에 기록된 로그만을 근거로 실행 과정을 재구성한다.
+`.mason-recap/events/`에 기록된 로그만을 근거로 실행 과정을 재구성한다.
 
 **이 명령은 Claude의 비공개 chain-of-thought를 조회하거나 요구하지 않는다.** 오직 Hook과
 transcript에서 관찰 가능한 사실(호출된 Tool, 읽거나 수정한 파일, 실행한 명령, Subagent 활동,
@@ -28,7 +28,7 @@ transcript에서 관찰 가능한 사실(호출된 Tool, 읽거나 수정한 파
    결과가 비어 있거나 `prompt`가 `null`이면, 아직 수집된 로그가 없다는 사실을 그대로 보고하고
    중단한다. 로그가 없다는 것을 추측으로 채우지 않는다.
 
-2. `plugins/mason-observer/skills/decision-analysis/SKILL.md`에 정의된 분석 절차와 Skill 활성화
+2. `plugins/mason-recap/skills/decision-analysis/SKILL.md`에 정의된 분석 절차와 Skill 활성화
    증거 등급(confirmed / strongly-inferred / weakly-inferred / not-observed)을 그대로 적용한다.
    이 Skill의 절차를 skip하지 말고 각 단계를 실제로 수행한다.
 
@@ -42,7 +42,7 @@ transcript에서 관찰 가능한 사실(호출된 Tool, 읽거나 수정한 파
 # 출력 형식
 
 ```markdown
-# Mason Observer Report
+# Mason Recap Report
 
 > "<사용자 프롬프트 원문 또는 핵심 요약>"
 

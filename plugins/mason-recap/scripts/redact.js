@@ -1,7 +1,7 @@
 'use strict'
 
 /**
- * Sensitive-data masking for mason-observer.
+ * Sensitive-data masking for mason-recap.
  *
  * Design constraint: this module must never throw. Any regex or logic
  * failure must fall back to returning the original text unmasked-but-safe

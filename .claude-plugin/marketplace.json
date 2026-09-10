@@ -1,26 +1,26 @@
 {
   "$schema": "https://code.claude.com/schemas/marketplace.json",
-  "name": "mason-observer",
+  "name": "mason-recap",
   "owner": {
     "name": "fe-hyunsu"
   },
-  "description": "Marketplace for mason-observer, an observability plugin that reconstructs how Claude Code handled a request from observed hook/transcript evidence.",
-  "version": "0.1.2",
+  "description": "Marketplace for mason-recap, an observability plugin that reconstructs how Claude Code handled a request from observed hook/transcript evidence.",
+  "version": "0.1.3",
   "metadata": {
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
-      "name": "mason-observer",
-      "source": "./plugins/mason-observer",
-      "displayName": "Mason Observer",
-      "description": "Local, hooks-based observability for Claude Code: captures observable execution evidence (prompts, tool calls, file paths, subagent activity, final answer) into project-local JSONL logs, with sensitive-data masking, and provides /mason-observer:inspect-last, /mason-observer:inspect-session, and /mason-observer:status commands plus a decision-analysis Skill to reconstruct what Claude did and why — always separating observed facts from inferred interpretation and unknowns. No chain-of-thought extraction, no network calls, no external services.",
-      "version": "0.1.2",
+      "name": "mason-recap",
+      "source": "./plugins/mason-recap",
+      "displayName": "Mason Recap",
+      "description": "Local, hooks-based observability for Claude Code: captures observable execution evidence (prompts, tool calls, file paths, subagent activity, final answer) into project-local JSONL logs, with sensitive-data masking, and provides /mason-recap:inspect-last, /mason-recap:inspect-session, and /mason-recap:status commands plus a decision-analysis Skill to reconstruct what Claude did and why — always separating observed facts from inferred interpretation and unknowns. No chain-of-thought extraction, no network calls, no external services.",
+      "version": "0.1.3",
       "author": {
         "name": "fe-hyunsu"
       },
-      "homepage": "https://github.com/fe-hyunsu/mason-observer",
-      "repository": "https://github.com/fe-hyunsu/mason-observer",
+      "homepage": "https://github.com/fe-hyunsu/mason-recap",
+      "repository": "https://github.com/fe-hyunsu/mason-recap",
       "license": "MIT",
       "keywords": ["observability", "hooks", "debugging", "transparency", "audit"],
       "category": "productivity"

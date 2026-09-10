@@ -2,7 +2,7 @@
 'use strict'
 
 /**
- * Read-only query helper over the .mason-observer/events JSONL logs. Invoked
+ * Read-only query helper over the .mason-recap/events JSONL logs. Invoked
  * directly (not as a hook) by the plugin's slash commands via Bash, e.g.:
  *
  *   node "${CLAUDE_PLUGIN_ROOT}/scripts/read-events.js" status

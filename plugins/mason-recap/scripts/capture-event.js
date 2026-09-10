@@ -2,11 +2,11 @@
 'use strict'
 
 /**
- * mason-observer hook entrypoint.
+ * mason-recap hook entrypoint.
  *
  * Receives one Claude Code hook event JSON on stdin, extracts an allowlisted
  * subset of fields (never the raw payload), masks sensitive substrings, and
- * appends the result as one JSONL line under <project>/.mason-observer/events/.
+ * appends the result as one JSONL line under <project>/.mason-recap/events/.
  *
  * Hard rules this file must uphold (see docs/privacy.md and README):
  *  - Never throw in a way that stops Claude Code's own turn. Any failure

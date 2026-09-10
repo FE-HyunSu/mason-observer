@@ -1,5 +1,5 @@
 ---
-description: 현재 세션 전체를 mason-observer가 수집한 관찰 증거만으로 요약합니다 (턴 목록, Tool 사용, 실패, Skill 적용 추정 등).
+description: 현재 세션 전체를 mason-recap가 수집한 관찰 증거만으로 요약합니다 (턴 목록, Tool 사용, 실패, Skill 적용 추정 등).
 allowed-tools: Bash, Read
 ---
 
@@ -37,7 +37,7 @@ allowed-tools: Bash, Read
    - 로드된 지침(`InstructionsLoaded` 이벤트의 경로 목록)
    을 집계한다.
 
-4. `plugins/mason-observer/skills/decision-analysis/SKILL.md`의 Skill 활성화 증거 등급
+4. `plugins/mason-recap/skills/decision-analysis/SKILL.md`의 Skill 활성화 증거 등급
    (confirmed / strongly-inferred / weakly-inferred / not-observed)을 참고하여, 세션 전체에서
    관찰된 Skill 적용 여부를 턴 단위로 추정한다.
 
@@ -51,7 +51,7 @@ allowed-tools: Bash, Read
 블록 자체가 타임라인이다.
 
 ```markdown
-# Mason Observer Session Report
+# Mason Recap Session Report
 
 - 세션 ID: <sessionId>
 - 관찰된 턴 수: <N>

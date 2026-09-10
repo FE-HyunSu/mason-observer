@@ -13,10 +13,10 @@ const {
   findLastPrompt,
   eventsForTurn,
   buildStatus,
-} = require('../plugins/mason-observer/scripts/read-events')
+} = require('../plugins/mason-recap/scripts/read-events')
 
 function makeTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'mason-observer-read-test-'))
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'mason-recap-read-test-'))
 }
 
 function cleanup(dir) {
@@ -125,8 +125,8 @@ test('buildStatus reports a clear warning when no events have been captured yet'
 test('buildStatus aggregates session count, last event, and masking stats', () => {
   const dir = makeTempDir()
   try {
-    fs.mkdirSync(path.join(dir, '.mason-observer', 'events'), { recursive: true })
-    writeEventsFile(dir, path.join('.mason-observer', 'events', 'sess-a.jsonl'), [
+    fs.mkdirSync(path.join(dir, '.mason-recap', 'events'), { recursive: true })
+    writeEventsFile(dir, path.join('.mason-recap', 'events', 'sess-a.jsonl'), [
       {
         schemaVersion: 1,
         timestamp: '2026-01-01T00:00:00.000Z',
