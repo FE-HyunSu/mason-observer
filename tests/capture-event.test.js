@@ -13,13 +13,13 @@ const {
   extractToolResultSummary,
   shapeSummary,
   relativizeMaybe,
-} = require('../plugins/mason-observer/scripts/capture-event')
-const { MAX_STDIN_BYTES } = require('../plugins/mason-observer/scripts/utils')
+} = require('../plugins/mason-recap/scripts/capture-event')
+const { MAX_STDIN_BYTES } = require('../plugins/mason-recap/scripts/utils')
 
-const CAPTURE_SCRIPT = path.join(__dirname, '..', 'plugins', 'mason-observer', 'scripts', 'capture-event.js')
+const CAPTURE_SCRIPT = path.join(__dirname, '..', 'plugins', 'mason-recap', 'scripts', 'capture-event.js')
 
 function makeTempProject() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'mason-observer-test-'))
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'mason-recap-test-'))
 }
 
 function cleanup(dir) {
@@ -40,7 +40,7 @@ function runCapture(stdinText, projectRoot) {
 }
 
 function eventsDir(projectRoot) {
-  return path.join(projectRoot, '.mason-observer', 'events')
+  return path.join(projectRoot, '.mason-recap', 'events')
 }
 
 function readAllLines(dir) {
@@ -297,7 +297,7 @@ test('capture-event CLI: does not touch unrelated existing project files', () =>
 
     const gitignore = fs.readFileSync(path.join(projectRoot, '.gitignore'), 'utf8')
     assert.ok(gitignore.includes('node_modules/'))
-    const occurrences = gitignore.split('.mason-observer/').length - 1
+    const occurrences = gitignore.split('.mason-recap/').length - 1
     assert.equal(occurrences, 1)
   } finally {
     cleanup(projectRoot)

@@ -1,12 +1,12 @@
 ---
 name: decision-analysis
-description: mason-observer가 수집한 Hook/transcript 로그를 분석하여, 관찰된 사실(observed)과 추정(inferred)과 확인 불가(unknown)를 분리한 Mason Observer Report를 만드는 절차. Claude Code 실행 과정을 재구성하거나, "왜 이렇게 했는지" 설명하거나, Skill/Rule 적용 여부를 검증할 때 사용한다.
+description: mason-recap가 수집한 Hook/transcript 로그를 분석하여, 관찰된 사실(observed)과 추정(inferred)과 확인 불가(unknown)를 분리한 Mason Recap Report를 만드는 절차. Claude Code 실행 과정을 재구성하거나, "왜 이렇게 했는지" 설명하거나, Skill/Rule 적용 여부를 검증할 때 사용한다.
 license: MIT
 ---
 
 # decision-analysis
 
-이 Skill은 `.mason-observer/events/`에 기록된 JSONL 로그(observed evidence)만을 근거로, Claude
+이 Skill은 `.mason-recap/events/`에 기록된 JSONL 로그(observed evidence)만을 근거로, Claude
 Code가 하나의 사용자 요청을 어떻게 처리했는지를 재구성하는 절차를 정의한다.
 
 ## 핵심 원칙
@@ -74,13 +74,13 @@ not-observed
 - 관련 이벤트가 전혀 관찰되지 않음
 ```
 
-**중요**: mason-observer가 수집하는 Hook 이벤트에는 "Skill이 호출됐다"를 직접 알려주는 전용
+**중요**: mason-recap가 수집하는 Hook 이벤트에는 "Skill이 호출됐다"를 직접 알려주는 전용
 이벤트가 없다. 따라서 기본값은 `weakly-inferred` 이하이며, `confirmed`로 판정하려면 위
 정의에 맞는 명시적 증거가 실제로 있어야 한다. 증거가 애매하면 등급을 낮춰 잡는다
 (과대 확신 금지).
 
 ## 산출물
 
-이 절차의 결과는 호출한 커맨드(`/mason-observer:inspect-last`, `/mason-observer:inspect-session`)가
+이 절차의 결과는 호출한 커맨드(`/mason-recap:inspect-last`, `/mason-recap:inspect-session`)가
 정의한 출력 형식에 맞춰 작성한다. 이 Skill 자체는 형식을 강제하지 않고 분석 절차와 등급
 기준만 제공한다.

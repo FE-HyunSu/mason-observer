@@ -1,8 +1,8 @@
-# mason-observer (한국어)
+# mason-recap (한국어)
 
 English version: [README.md](./README.md)
 
-`mason-observer`는 Claude Code의 실행 과정을 **공식 Hook**을 통해 관찰하고, 그 관찰
+`mason-recap`는 Claude Code의 실행 과정을 **공식 Hook**을 통해 관찰하고, 그 관찰
 증거만으로 "Claude가 이번 요청을 어떻게 처리했는지"를 재구성하는 오픈소스 Claude Code
 Plugin입니다. 별도 서버나 외부 LLM 호출 없이, 이미 설치된 Claude Code 자신이 로그를 읽고
 분석 리포트를 작성합니다.
@@ -43,8 +43,8 @@ npm install -g @anthropic-ai/claude-code
 
 | Claude Code를 실행 중인 곳 | 입력할 명령 | 입력하는 위치 |
 |---|---|---|
-| 일반 터미널 셸, Claude Code가 아직 인터랙티브로 실행 중이 아님 | `claude plugin marketplace add fe-hyunsu/mason-observer` 실행 후 `claude plugin install mason-observer@mason-observer` | 셸 프롬프트에 그대로 — **앞에 `/`를 붙이지 않습니다.** `claude` 바이너리의 일반 CLI 서브커맨드이지 슬래시 명령이 아니라서, 평범한 셸이 그대로 이해합니다. |
-| 인터랙티브 터미널 REPL(이미 `claude`를 실행해서 그 자체 프롬프트 안에 들어가 있는 상태) | `/plugin marketplace add fe-hyunsu/mason-observer` 실행 후 `/plugin install mason-observer@mason-observer` | 그 세션 자체의 입력창 안에서 입력합니다. |
+| 일반 터미널 셸, Claude Code가 아직 인터랙티브로 실행 중이 아님 | `claude plugin marketplace add fe-hyunsu/mason-recap` 실행 후 `claude plugin install mason-recap@mason-recap` | 셸 프롬프트에 그대로 — **앞에 `/`를 붙이지 않습니다.** `claude` 바이너리의 일반 CLI 서브커맨드이지 슬래시 명령이 아니라서, 평범한 셸이 그대로 이해합니다. |
+| 인터랙티브 터미널 REPL(이미 `claude`를 실행해서 그 자체 프롬프트 안에 들어가 있는 상태) | `/plugin marketplace add fe-hyunsu/mason-recap` 실행 후 `/plugin install mason-recap@mason-recap` | 그 세션 자체의 입력창 안에서 입력합니다. |
 | VS Code 확장 | `/plugins` (**복수형** — 단수형 `/plugin`은 이 환경에서 지원되지 않습니다) | 채팅 입력창에 — GUI 다이얼로그가 열리고 거기서 마켓플레이스 추가/설치를 진행합니다. |
 | 인터랙티브 UI 자체가 없는 환경(클라우드 세션, headless/CI) | `.claude/settings.json`에 선언 (아래 참고) | 명령을 타이핑하는 게 아니라 설정 파일에 적어둡니다. |
 
@@ -54,11 +54,11 @@ npm install -g @anthropic-ai/claude-code
 
 2. 마켓플레이스를 추가하고 플러그인을 설치합니다.
    ```bash
-   claude plugin marketplace add fe-hyunsu/mason-observer
-   claude plugin install mason-observer@mason-observer
+   claude plugin marketplace add fe-hyunsu/mason-recap
+   claude plugin install mason-recap@mason-recap
    ```
    `@` 앞은 **플러그인 이름**, `@` 뒤는 **마켓플레이스 이름**입니다. 이 저장소는 우연히
-   둘 다 `mason-observer`라는 같은 문자열이라 헷갈릴 수 있는데, 이는 이름을 그렇게
+   둘 다 `mason-recap`라는 같은 문자열이라 헷갈릴 수 있는데, 이는 이름을 그렇게
    지어서 생긴 우연이지 규칙은 아닙니다.
 
 3. **이미 열려 있는 세션에 반영합니다.** 셸 레벨 설치는 이미 실행 중이던 Claude Code
@@ -71,7 +71,7 @@ npm install -g @anthropic-ai/claude-code
 
 4. **실제로 활성화됐는지 확인합니다.**
    ```
-   /mason-observer:status
+   /mason-recap:status
    ```
    "unknown command"가 아니라 실제 상태 리포트가 나오면 활성화된 것입니다.
 
@@ -82,9 +82,9 @@ npm install -g @anthropic-ai/claude-code
 바뀌었을 때만, 그리고 명시적으로 새로고침을 해야만 업데이트를 받습니다.
 
 ```bash
-claude plugin marketplace update mason-observer
-claude plugin uninstall mason-observer@mason-observer
-claude plugin install mason-observer@mason-observer
+claude plugin marketplace update mason-recap
+claude plugin uninstall mason-recap@mason-recap
+claude plugin install mason-recap@mason-recap
 ```
 
 (단순 재설치는 "already installed"만 뜨고 끝날 수 있어서, uninstall 후 install로 깨끗하게
@@ -97,12 +97,12 @@ claude plugin install mason-observer@mason-observer
 ```json
 {
   "extraKnownMarketplaces": {
-    "mason-observer": {
-      "source": { "source": "github", "repo": "fe-hyunsu/mason-observer" }
+    "mason-recap": {
+      "source": { "source": "github", "repo": "fe-hyunsu/mason-recap" }
     }
   },
   "enabledPlugins": {
-    "mason-observer@mason-observer": true
+    "mason-recap@mason-recap": true
   }
 }
 ```
@@ -110,40 +110,40 @@ claude plugin install mason-observer@mason-observer
 #### 아무 곳에도 배포하지 않고 로컬에서만 테스트하기
 
 ```bash
-claude plugin marketplace add ./path/to/mason-observer
-claude plugin install mason-observer@mason-observer
+claude plugin marketplace add ./path/to/mason-recap
+claude plugin install mason-recap@mason-recap
 ```
 (위 표의 셸 vs REPL vs VS Code 구분은 이 경우에도 동일하게 적용됩니다)
 
 ### 사용 방법
 
-**`/mason-observer:inspect-last`** — 가장 최근에 완료된 사용자 턴을 관찰 증거만으로
+**`/mason-recap:inspect-last`** — 가장 최근에 완료된 사용자 턴을 관찰 증거만으로
 재구성한 리포트를 생성합니다.
 
 ```text
-/mason-observer:inspect-last
+/mason-recap:inspect-last
 ```
 
 출력 형식과 예시는 [examples/sample-report.md](./examples/sample-report.md)를 참고해 주세요.
 
-**`/mason-observer:inspect-session`** — 현재 세션 전체(턴 목록, Tool 사용 패턴, 실패,
+**`/mason-recap:inspect-session`** — 현재 세션 전체(턴 목록, Tool 사용 패턴, 실패,
 로드된 지침, Skill 적용 추정 등)를 요약합니다.
 
 ```text
-/mason-observer:inspect-session
+/mason-recap:inspect-session
 ```
 
-**`/mason-observer:status`** — 로그 수집 상태(위치, 최근 이벤트, 세션 수, 마스킹 적용
+**`/mason-recap:status`** — 로그 수집 상태(위치, 최근 이벤트, 세션 수, 마스킹 적용
 여부, 로그 크기, 지원 Hook 목록, 진단 경고)를 표시합니다.
 
 ```text
-/mason-observer:status
+/mason-recap:status
 ```
 
 ### 로그
 
 ```text
-<project-root>/.mason-observer/
+<project-root>/.mason-recap/
 ├── events/    # Hook 이벤트 JSONL
 ├── reports/   # (예약됨 — 향후 리포트 저장용)
 ├── state/     # 내부 상태(예: .gitignore 보강 여부 마커)
@@ -157,11 +157,11 @@ claude plugin install mason-observer@mason-observer
 프로젝트의 모든 로그를 지우려면:
 
 ```bash
-rm -rf .mason-observer/
+rm -rf .mason-recap/
 ```
 
 위 명령은 사용자가 자신의 프로젝트에서 직접 실행하는 일반적인 파일 삭제이며,
-`mason-observer`는 자체적으로 원격 삭제나 별도 삭제 API를 제공하지 않습니다.
+`mason-recap`는 자체적으로 원격 삭제나 별도 삭제 API를 제공하지 않습니다.
 
 ---
 
@@ -169,7 +169,7 @@ rm -rf .mason-observer/
 
 ### 무엇을, 왜 만들었는지
 
-`mason-observer`는 Claude Code의 실행 과정을 **공식 Hook**을 통해 관찰하고, 그 관찰
+`mason-recap`는 Claude Code의 실행 과정을 **공식 Hook**을 통해 관찰하고, 그 관찰
 증거만으로 "Claude가 이번 요청을 어떻게 처리했는지"를 재구성하는 오픈소스 Claude Code
 Plugin입니다. 별도 서버나 외부 LLM 호출 없이, 이미 설치된 Claude Code 자신이 로그를 읽고
 분석 리포트를 작성합니다.
@@ -177,7 +177,7 @@ Plugin입니다. 별도 서버나 외부 LLM 호출 없이, 이미 설치된 Cla
 Claude Code는 하나의 요청을 처리하면서 여러 Tool을 호출하고, 파일을 읽거나 수정하고,
 때로는 Subagent를 실행합니다. 이 과정은 대화창에서 지나가듯 스쳐 사라지고, "왜 이런
 선택을 했는지", "실제로 어떤 파일들을 건드렸는지", "어떤 지침이 적용됐는지"를 나중에
-정확히 재구성하기 어렵습니다. `mason-observer`는 이 실행 과정의 **관찰 가능한 부분**을
+정확히 재구성하기 어렵습니다. `mason-recap`는 이 실행 과정의 **관찰 가능한 부분**을
 로컬에 기록하고, 나중에 그 기록만으로 사실과 추정을 구분해 설명해주는 도구입니다.
 
 ### 확인할 수 있는 정보
@@ -203,7 +203,7 @@ Claude Code는 하나의 요청을 처리하면서 여러 Tool을 호출하고, 
 
 자세한 한계는 [docs/limitations.md](./docs/limitations.md)를 참고해 주세요.
 
-**mason-observer는 Claude의 비공개 내부 추론을 추출하거나 우회 노출하는 도구가 아닙니다.**
+**mason-recap는 Claude의 비공개 내부 추론을 추출하거나 우회 노출하는 도구가 아닙니다.**
 모든 분석은 Hook과 transcript에서 공식적으로 노출되는 관찰 가능한 사실에만 근거하며,
 리포트는 "Claude가 이렇게 생각했다"라고 단정하지 않고 "관찰된 행동을 보면 이렇게 판단한
 것으로 추정된다"는 식으로만 서술하도록 설계되어 있습니다(`skills/decision-analysis/SKILL.md`
@@ -217,10 +217,10 @@ User Prompt
   → Claude Agent Loop
   → Tool/Subagent Hooks
   → Stop Hook
-  → Local JSONL (.mason-observer/events/)
+  → Local JSONL (.mason-recap/events/)
   → inspect Command
   → decision-analysis Skill
-  → Mason Observer Report
+  → Mason Recap Report
 ```
 
 자세한 내용은 [docs/architecture.md](./docs/architecture.md)를 참고해 주세요.
@@ -245,8 +245,8 @@ User Prompt
   AWS/GitHub/Anthropic/OpenAI 토큰 등은 저장 전에 마스킹됩니다.
 - Tool 결과는 원문 전체가 아닌 안전한 요약만, 크기 제한을 두어 저장합니다.
 - 로그 크기와 보관 개수를 제한합니다(파일당 약 5MB, 프로젝트당 파일 개수 제한).
-- `.mason-observer/`가 프로젝트 외부를 가리키는 심볼릭 링크이면 쓰기를 거부합니다.
-- `.gitignore`에 `.mason-observer/`가 없으면 기존 내용을 보존한 채로만 안전하게 추가합니다.
+- `.mason-recap/`가 프로젝트 외부를 가리키는 심볼릭 링크이면 쓰기를 거부합니다.
+- `.gitignore`에 `.mason-recap/`가 없으면 기존 내용을 보존한 채로만 안전하게 추가합니다.
 - Hook 실패나 분석 실패가 Claude Code의 정상 작업을 절대 막지 않습니다.
 
 자세한 내용은 [docs/privacy.md](./docs/privacy.md)를 참고해 주세요.
@@ -258,8 +258,8 @@ Marketplace / Hooks / Skill 규격을 기준으로 작성했습니다.
 
 **2026-09-06에 실제 Claude Code(v2.1.178, VS Code 확장 + Agent SDK 백엔드)에 이 플러그인을
 `claude plugin marketplace add` / `claude plugin install`로 설치하고, `/reload-plugins`
-후 `/mason-observer:status`를 실행해 end-to-end로 검증했습니다.** `SessionStart`,
-`UserPromptSubmit`, `PreToolUse`, `PostToolUse` 이벤트가 실제로 `.mason-observer/events/`에
+후 `/mason-recap:status`를 실행해 end-to-end로 검증했습니다.** `SessionStart`,
+`UserPromptSubmit`, `PreToolUse`, `PostToolUse` 이벤트가 실제로 `.mason-recap/events/`에
 정상 기록됐고, `sessionId`/`promptId` 상관관계, 마스킹 파이프라인, 프로젝트 상대경로 변환이
 모두 실제 로그에서 확인됐습니다.
 
@@ -278,7 +278,7 @@ Marketplace / Hooks / Skill 규격을 기준으로 작성했습니다.
   .../hooks/hooks.json`). 수정은 `plugin.json`에서 불필요한 `hooks` 필드를 제거하는
   것으로 충분했고, `tests/validate.js`에 이 실수를 다시 잡아내는 회귀 테스트를 추가했습니다.
 
-`/mason-observer:status`로 실제 환경에서 이벤트가 정상적으로 수집되는지 직접 확인해
+`/mason-recap:status`로 실제 환경에서 이벤트가 정상적으로 수집되는지 직접 확인해
 보시길 권장합니다.
 
 ### 알려진 한계
@@ -301,15 +301,15 @@ Marketplace / Hooks / Skill 규격을 기준으로 작성했습니다.
 1. 이 저장소를 GitHub에 **public** 저장소로 push합니다(`.claude-plugin/marketplace.json`이
    저장소 루트에 있어야 합니다).
 2. `.claude-plugin/marketplace.json`의 `name`, `owner.name`, 각 플러그인 항목의
-   `author`/`homepage`/`repository`, 그리고 `plugins/mason-observer/.claude-plugin/plugin.json`의
+   `author`/`homepage`/`repository`, 그리고 `plugins/mason-recap/.claude-plugin/plugin.json`의
    해당 필드들을 자신의 값으로 교체합니다.
 3. 태그를 눌러 버전을 명시적으로 관리합니다([릴리스 체크리스트](#릴리스-체크리스트-태그-기반-버전-관리) 참고).
 
 ### 개발 및 테스트 방법
 
 ```bash
-git clone https://github.com/fe-hyunsu/mason-observer.git
-cd mason-observer
+git clone https://github.com/fe-hyunsu/mason-recap.git
+cd mason-recap
 
 npm test        # Node.js 내장 테스트 러너로 단위/통합 테스트 실행
 npm run validate # 매니페스트/hooks.json/Command·Skill frontmatter/스크립트 문법 검사 + 테스트 실행
@@ -333,7 +333,7 @@ npm run validate # 매니페스트/hooks.json/Command·Skill frontmatter/스크�
 
 - [ ] `npm test`, `npm run validate` 통과
 - [ ] `CHANGELOG.md`에 변경 사항 기록
-- [ ] `.claude-plugin/marketplace.json`과 `plugins/mason-observer/.claude-plugin/plugin.json`의
+- [ ] `.claude-plugin/marketplace.json`과 `plugins/mason-recap/.claude-plugin/plugin.json`의
       `version` 필드를 함께 올림
 - [ ] `git tag vX.Y.Z` 후 push (Marketplace의 `github` source 타입은 `ref`로 특정
       태그/브랜치를 고정할 수 있습니다)
