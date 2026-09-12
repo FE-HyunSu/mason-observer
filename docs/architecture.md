@@ -10,7 +10,7 @@ User Prompt
                           SubagentStart, SubagentStop, InstructionsLoaded)
   → Stop Hook
   → Local JSONL (<project>/.mason-recap/events/*.jsonl)
-  → inspect Command (/mason-recap:inspect-last, /mason-recap:inspect-session)
+  → inspect Command (/mason-recap:1, /mason-recap:all)
   → decision-analysis Skill (분석 절차 · 증거 등급 정의)
   → Mason Recap Report (observed / inferred / unknown 구분된 마크다운)
 ```
@@ -31,8 +31,8 @@ User Prompt
 - **scripts/rotate-logs.js**: 이벤트 파일 크기와 개수를 제한한다.
 - **scripts/read-events.js**: 저장된 JSONL을 읽어 세션/턴 단위로 조회하는 읽기 전용
   CLI. Slash Command가 Bash로 직접 호출한다.
-- **commands/*.md**: 사용자가 실행하는 `/mason-recap:inspect-last`,
-  `/mason-recap:inspect-session`, `/mason-recap:status`. `read-events.js`를 호출해 원본
+- **commands/*.md**: 사용자가 실행하는 `/mason-recap:1`,
+  `/mason-recap:all`, `/mason-recap:status`. `read-events.js`를 호출해 원본
   데이터를 가져온 뒤, Claude가 그 데이터를 해석해 리포트를 작성하도록 지시한다.
 - **skills/decision-analysis/SKILL.md**: 분석 절차, observed/inferred/unknown 구분 원칙,
   Skill/Rule 적용 여부 판정 등급(confirmed/strongly-inferred/weakly-inferred/not-observed)을

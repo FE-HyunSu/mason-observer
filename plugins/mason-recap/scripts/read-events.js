@@ -8,7 +8,7 @@
  *   node "${CLAUDE_PLUGIN_ROOT}/scripts/read-events.js" status
  *   node "${CLAUDE_PLUGIN_ROOT}/scripts/read-events.js" sessions
  *   node "${CLAUDE_PLUGIN_ROOT}/scripts/read-events.js" session <sessionId>
- *   node "${CLAUDE_PLUGIN_ROOT}/scripts/read-events.js" last-turn
+ *   node "${CLAUDE_PLUGIN_ROOT}/scripts/read-events.js" last-turns [n]
  *
  * Unlike capture-event.js, this script is allowed to print to stdout (it is
  * not a hook, so there is no risk of its output being silently injected
@@ -107,10 +107,23 @@ function eventsForSession(events, sessionId) {
   return events.filter((ev) => (ev.sessionId || 'unknown-session') === sessionId).sort(byTimestampAsc)
 }
 
+/**
+ * The last `n` observed UserPromptSubmit events across all sessions, oldest
+ * first (so the most recent is always last in the returned array). `n` is
+ * coerced to a positive integer, defaulting to 1 for anything invalid
+ * (missing, zero, negative, non-numeric) — a bad count should degrade to
+ * "just the most recent turn" rather than error out.
+ */
+function findLastPrompts(events, n) {
+  const count = Number.isFinite(n) && n > 0 ? Math.floor(n) : 1
+  const prompts = events.filter((ev) => ev.event === 'UserPromptSubmit').sort(byTimestampAsc)
+  return prompts.slice(-count)
+}
+
 /** Most recently observed UserPromptSubmit event across all sessions. */
 function findLastPrompt(events) {
-  const prompts = events.filter((ev) => ev.event === 'UserPromptSubmit').sort(byTimestampAsc)
-  return prompts.length ? prompts[prompts.length - 1] : null
+  const prompts = findLastPrompts(events, 1)
+  return prompts.length ? prompts[0] : null
 }
 
 /**
@@ -249,21 +262,23 @@ function main() {
       printJSON(eventsForSession(events, arg))
       return
     }
-    case 'last-turn': {
+    case 'last-turns': {
+      // arg is the requested turn count as a string; anything that doesn't
+      // parse to a positive integer falls back to 1 inside findLastPrompts.
+      const requestedCount = arg ? parseInt(arg, 10) : 1
       const events = readAllEvents(paths.events)
-      const promptEvent = findLastPrompt(events)
-      if (!promptEvent) {
-        printJSON({ prompt: null, promptIdCorrelated: [], timeWindowCorrelated: [] })
-        return
-      }
-      const { promptIdCorrelated, timeWindowCorrelated } = eventsForTurn(events, promptEvent)
-      printJSON({ prompt: promptEvent, promptIdCorrelated, timeWindowCorrelated })
+      const prompts = findLastPrompts(events, requestedCount)
+      const turns = prompts.map((promptEvent) => {
+        const { promptIdCorrelated, timeWindowCorrelated } = eventsForTurn(events, promptEvent)
+        return { prompt: promptEvent, promptIdCorrelated, timeWindowCorrelated }
+      })
+      printJSON({ requestedCount: Number.isFinite(requestedCount) && requestedCount > 0 ? Math.floor(requestedCount) : 1, returnedCount: turns.length, turns })
       return
     }
     default:
       printJSON({
         error: `unknown subcommand: ${subcommand || '(none)'}`,
-        usage: ['status', 'sessions', 'session <sessionId>', 'last-turn'],
+        usage: ['status', 'sessions', 'session <sessionId>', 'last-turns [n]'],
       })
       process.exitCode = 1
   }
@@ -278,6 +293,7 @@ module.exports = {
   listSessions,
   eventsForSession,
   findLastPrompt,
+  findLastPrompts,
   eventsForTurn,
   buildStatus,
   SUPPORTED_HOOK_EVENTS,

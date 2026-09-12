@@ -81,6 +81,6 @@ not-observed
 
 ## 산출물
 
-이 절차의 결과는 호출한 커맨드(`/mason-recap:inspect-last`, `/mason-recap:inspect-session`)가
+이 절차의 결과는 호출한 커맨드(`/mason-recap:1`, `/mason-recap:all`)가
 정의한 출력 형식에 맞춰 작성한다. 이 Skill 자체는 형식을 강제하지 않고 분석 절차와 등급
 기준만 제공한다.

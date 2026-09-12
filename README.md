@@ -99,18 +99,19 @@ claude plugin install mason-recap@mason-recap
 
 ### Commands
 
-**`/mason-recap:inspect-last`** — reconstructs a report of the most recently completed user turn, using observed evidence only.
+**`/mason-recap:1`** — reconstructs a report of the most recently completed user turn(s), using observed evidence only. Takes an optional number: no argument means the last 1 turn, a number means that many recent turns.
 
 ```text
-/mason-recap:inspect-last
+/mason-recap:1
+/mason-recap:1 3
 ```
 
 See [examples/sample-report.md](./examples/sample-report.md) for the output format and a worked example.
 
-**`/mason-recap:inspect-session`** — summarizes the entire current session: turn list, tool usage patterns, failures, loaded instructions, estimated Skill usage, and so on.
+**`/mason-recap:all`** — summarizes the entire current session: turn list, tool usage patterns, failures, loaded instructions, estimated Skill usage, and so on.
 
 ```text
-/mason-recap:inspect-session
+/mason-recap:all
 ```
 
 **`/mason-recap:status`** — shows log collection status: location, most recent event, session count, whether masking has been applied, log size, supported hook events, and diagnostic warnings.

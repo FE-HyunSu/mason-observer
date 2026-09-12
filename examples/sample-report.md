@@ -2,7 +2,7 @@
 
 이 문서는 실제 사용자 세션이 아니라, `plugins/mason-recap/scripts/capture-event.js`와
 `read-events.js`에 실제 샘플 Hook 이벤트를 흘려보내 얻은 결과를 근거로 손으로 작성한
-예시다. `/mason-recap:inspect-last`가 실행되면 Claude가 이와 유사한 형태의 리포트를
+예시다. `/mason-recap:1`가 실행되면 Claude가 이와 유사한 형태의 리포트를
 생성한다.
 
 입력으로 사용된 이벤트 시퀀스(요약): `SessionStart` → `UserPromptSubmit`

@@ -3,6 +3,39 @@
 이 프로젝트는 [Keep a Changelog](https://keepachangelog.com/) 형식을 따르려 하며,
 버전은 태그 기반([릴리스 체크리스트](./README.md#릴리스-체크리스트-태그-기반-버전-관리) 참고)으로 관리한다.
 
+## [0.1.5] - 2026-09-12
+
+### Added
+
+- **`/mason-recap:1`이 이제 선택적으로 숫자 인자를 받는다.** 인자 없이 `/mason-recap:1`은
+  기존과 동일하게 최근 1턴만 보여주고, `/mason-recap:1 3`처럼 숫자를 주면 최근 N턴을
+  시간순으로 보여준다. `read-events.js`에 `findLastPrompts(events, n)`과 새 CLI
+  서브커맨드 `last-turns [n]`을 추가했다(기존 `last-turn` 서브커맨드는 `last-turns`로
+  대체됨). 요청한 개수가 로그에 있는 턴 수보다 많으면 있는 만큼만 반환하고, 잘못된
+  값(0, 음수, 숫자가 아닌 값)은 조용히 1로 대체된다.
+
+## [0.1.4] - 2026-09-12
+
+### Changed
+
+- **Command 이름을 더 짧게 바꿨다**: `/mason-recap:inspect-last` → `/mason-recap:1`,
+  `/mason-recap:inspect-session` → `/mason-recap:all` (`/mason-recap:status`는 그대로
+  유지). 기존 이름이 타이핑하기엔 너무 길다는 피드백을 반영했다. 순수 숫자(`1`)로만
+  이루어진 command 파일명이 실제로 유효한 slash command로 동작하는지는 문서로 확신할
+  수 없어, 설치 후 실제 세션에서 직접 호출해 확인했다.
+
+### Fixed
+
+- **`npm test`/`npm run validate`가 Node v24.11.1에서 실패하던 문제를 고쳤다.**
+  `node --test tests/`(바로 뒤에 디렉터리 경로를 붙이는 형태)가 이 환경에서는
+  `--test` 플래그 자체가 인식되지 않은 것처럼 `Cannot find module '.../tests'`
+  에러를 내며 완전히 실패했다 — 이전에 개발할 때 쓰던 Node 버전에서는 문제없이
+  동작했던 것과 대조적이다. 임의의 디렉터리 하나만 비교해본 결과 같은 증상이
+  재현되어 이 리포지토리 코드 문제가 아니라 Node 버전 차이임을 확인했다. 경로 인자
+  없이 `node --test`만 실행하면(현재 디렉터리에서 재귀적으로 테스트 파일을 찾는
+  기본 동작) 두 버전 모두에서 안정적으로 동작해, `package.json`과
+  `tests/validate.js`를 이 형태로 변경했다.
+
 ## [0.1.3] - 2026-09-10
 
 ### Changed
@@ -40,7 +73,7 @@
 
 ### Changed
 
-- `/mason-recap:inspect-last`, `/mason-recap:inspect-session`의 출력 포맷을
+- `/mason-recap:1`, `/mason-recap:all`의 출력 포맷을
   고정된 8개 h2 섹션 방식에서, "사용자 프롬프트 한 줄 인용 → 그 턴에 대한 설명 → 다음
   프롬프트" 순서로 이어지는 내러티브 스타일로 변경했다(가독성 개선 피드백 반영).
   `observed`/`inferred`/`unknown` 태그와 Skill/Rule 적용 등급 구분은 그대로 유지된다.
@@ -69,7 +102,7 @@
   Token, Authorization/Cookie 헤더, 비밀번호, `.env` 관련 경로, PEM/Private Key,
   AWS/GitHub/Anthropic/OpenAI 토큰 패턴 등.
 - 로그 조회 CLI(`scripts/read-events.js`)와 로그 회전(`scripts/rotate-logs.js`).
-- `/mason-recap:inspect-last`, `/mason-recap:inspect-session`, `/mason-recap:status`
+- `/mason-recap:1`, `/mason-recap:all`, `/mason-recap:status`
   Slash Command.
 - `decision-analysis` Skill: observed/inferred/unknown 구분과 Skill/Rule 적용 여부
   4단계 증거 등급(confirmed/strongly-inferred/weakly-inferred/not-observed)을 정의.

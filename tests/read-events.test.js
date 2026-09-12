@@ -5,12 +5,14 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
 
 const {
   readAllEvents,
   listSessions,
   eventsForSession,
   findLastPrompt,
+  findLastPrompts,
   eventsForTurn,
   buildStatus,
 } = require('../plugins/mason-recap/scripts/read-events')
@@ -89,6 +91,75 @@ test('findLastPrompt returns the most recent UserPromptSubmit event', () => {
 
 test('findLastPrompt returns null when there is no UserPromptSubmit event', () => {
   assert.equal(findLastPrompt([{ event: 'SessionStart', timestamp: '2026-01-01T00:00:00.000Z' }]), null)
+})
+
+test('findLastPrompts returns the last n prompts, oldest first', () => {
+  const events = [
+    { sessionId: 'a', event: 'UserPromptSubmit', timestamp: '2026-01-01T00:00:00.000Z', data: { prompt: 'first' } },
+    { sessionId: 'a', event: 'UserPromptSubmit', timestamp: '2026-01-01T00:10:00.000Z', data: { prompt: 'second' } },
+    { sessionId: 'a', event: 'UserPromptSubmit', timestamp: '2026-01-01T00:20:00.000Z', data: { prompt: 'third' } },
+  ]
+  const last2 = findLastPrompts(events, 2)
+  assert.equal(last2.length, 2)
+  assert.equal(last2[0].data.prompt, 'second')
+  assert.equal(last2[1].data.prompt, 'third')
+})
+
+test('findLastPrompts falls back to 1 for an invalid count (zero, negative, non-numeric)', () => {
+  const events = [
+    { sessionId: 'a', event: 'UserPromptSubmit', timestamp: '2026-01-01T00:00:00.000Z', data: { prompt: 'first' } },
+    { sessionId: 'a', event: 'UserPromptSubmit', timestamp: '2026-01-01T00:10:00.000Z', data: { prompt: 'second' } },
+  ]
+  for (const badCount of [0, -3, NaN, undefined]) {
+    const result = findLastPrompts(events, badCount)
+    assert.equal(result.length, 1)
+    assert.equal(result[0].data.prompt, 'second')
+  }
+})
+
+test('findLastPrompts returns fewer than requested when the log has fewer turns', () => {
+  const events = [{ sessionId: 'a', event: 'UserPromptSubmit', timestamp: '2026-01-01T00:00:00.000Z', data: { prompt: 'only' } }]
+  const result = findLastPrompts(events, 5)
+  assert.equal(result.length, 1)
+  assert.equal(result[0].data.prompt, 'only')
+})
+
+test('CLI: last-turns [n] reports requestedCount/returnedCount and turns in chronological order', () => {
+  const dir = makeTempDir()
+  try {
+    fs.mkdirSync(path.join(dir, '.mason-recap', 'events'), { recursive: true })
+    writeEventsFile(dir, path.join('.mason-recap', 'events', 'sess-a.jsonl'), [
+      { schemaVersion: 1, timestamp: '2026-01-01T00:00:00.000Z', event: 'UserPromptSubmit', sessionId: 'sess-a', promptId: 'p1', data: { prompt: 'first' } },
+      { schemaVersion: 1, timestamp: '2026-01-01T00:00:01.000Z', event: 'Stop', sessionId: 'sess-a', promptId: 'p1', data: {} },
+      { schemaVersion: 1, timestamp: '2026-01-01T00:01:00.000Z', event: 'UserPromptSubmit', sessionId: 'sess-a', promptId: 'p2', data: { prompt: 'second' } },
+      { schemaVersion: 1, timestamp: '2026-01-01T00:01:01.000Z', event: 'Stop', sessionId: 'sess-a', promptId: 'p2', data: {} },
+    ])
+
+    const scriptPath = path.join(__dirname, '..', 'plugins', 'mason-recap', 'scripts', 'read-events.js')
+
+    // Requesting more turns than exist: falls back to however many are there.
+    const result5 = spawnSync(process.execPath, [scriptPath, 'last-turns', '5'], {
+      encoding: 'utf8',
+      env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
+    })
+    const parsed5 = JSON.parse(result5.stdout)
+    assert.equal(parsed5.requestedCount, 5)
+    assert.equal(parsed5.returnedCount, 2)
+    assert.equal(parsed5.turns[0].prompt.data.prompt, 'first')
+    assert.equal(parsed5.turns[1].prompt.data.prompt, 'second')
+
+    // No argument: defaults to 1, the most recent turn.
+    const result1 = spawnSync(process.execPath, [scriptPath, 'last-turns'], {
+      encoding: 'utf8',
+      env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
+    })
+    const parsed1 = JSON.parse(result1.stdout)
+    assert.equal(parsed1.requestedCount, 1)
+    assert.equal(parsed1.returnedCount, 1)
+    assert.equal(parsed1.turns[0].prompt.data.prompt, 'second')
+  } finally {
+    cleanup(dir)
+  }
 })
 
 test('eventsForTurn correlates by promptId when present, and falls back to time window otherwise', () => {
