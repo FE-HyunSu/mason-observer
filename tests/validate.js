@@ -167,7 +167,13 @@ check('all plugin scripts have valid JavaScript syntax', () => {
 })
 
 check('test suite passes', () => {
-  const result = spawnSync(process.execPath, ['--test', 'tests/'], { cwd: ROOT, encoding: 'utf8' })
+  // No explicit path: Node's test runner then recursively discovers test
+  // files from `cwd` (ROOT) itself, which is more robust across Node
+  // versions than passing a bare "tests/" directory — that form failed
+  // outright ("Cannot find module '.../tests'") under Node v24.11.1 during
+  // real testing, even though it worked fine on the Node version used
+  // earlier in this project's development.
+  const result = spawnSync(process.execPath, ['--test'], { cwd: ROOT, encoding: 'utf8' })
   if (result.status !== 0) {
     throw new Error(`node --test exited with code ${result.status}\n${result.stdout}\n${result.stderr}`)
   }

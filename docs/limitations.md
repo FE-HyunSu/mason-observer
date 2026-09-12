@@ -20,7 +20,7 @@ mason-recap는 관찰 가능한 실행 증거만으로 동작한다. 아래 한�
   구분을 위해 4단계 증거 등급(confirmed/strongly-inferred/weakly-inferred/not-observed)을
   사용하지만, 이 자체도 로그가 명시적 신호(예: 전용 "Skill invoked" 이벤트)를 제공하지
   않는 한 완전히 확실할 수 없다.
-- **Observer의 분석도 모델의 해석이므로 오류 가능**: `/mason-recap:inspect-last` 등이
+- **Observer의 분석도 모델의 해석이므로 오류 가능**: `/mason-recap:1` 등이
   생성하는 리포트 자체도 Claude가 로그를 읽고 작성한 것이다. 로그가 정확해도, 그 로그를
   해석하는 과정에서 오류나 과잉 해석이 있을 수 있다.
 
