@@ -99,10 +99,11 @@ claude plugin install mason-recap@mason-recap
 
 ### Commands
 
-**`/mason-recap:1`** — reconstructs a report of the most recently completed user turn, using observed evidence only.
+**`/mason-recap:1`** — reconstructs a report of the most recently completed user turn(s), using observed evidence only. Takes an optional number: no argument means the last 1 turn, a number means that many recent turns.
 
 ```text
 /mason-recap:1
+/mason-recap:1 3
 ```
 
 See [examples/sample-report.md](./examples/sample-report.md) for the output format and a worked example.

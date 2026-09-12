@@ -3,6 +3,17 @@
 이 프로젝트는 [Keep a Changelog](https://keepachangelog.com/) 형식을 따르려 하며,
 버전은 태그 기반([릴리스 체크리스트](./README.md#릴리스-체크리스트-태그-기반-버전-관리) 참고)으로 관리한다.
 
+## [0.1.5] - 2026-09-12
+
+### Added
+
+- **`/mason-recap:1`이 이제 선택적으로 숫자 인자를 받는다.** 인자 없이 `/mason-recap:1`은
+  기존과 동일하게 최근 1턴만 보여주고, `/mason-recap:1 3`처럼 숫자를 주면 최근 N턴을
+  시간순으로 보여준다. `read-events.js`에 `findLastPrompts(events, n)`과 새 CLI
+  서브커맨드 `last-turns [n]`을 추가했다(기존 `last-turn` 서브커맨드는 `last-turns`로
+  대체됨). 요청한 개수가 로그에 있는 턴 수보다 많으면 있는 만큼만 반환하고, 잘못된
+  값(0, 음수, 숫자가 아닌 값)은 조용히 1로 대체된다.
+
 ## [0.1.4] - 2026-09-12
 
 ### Changed

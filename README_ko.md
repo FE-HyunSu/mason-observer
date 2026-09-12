@@ -117,11 +117,13 @@ claude plugin install mason-recap@mason-recap
 
 ### 사용 방법
 
-**`/mason-recap:1`** — 가장 최근에 완료된 사용자 턴을 관찰 증거만으로
-재구성한 리포트를 생성합니다.
+**`/mason-recap:1`** — 가장 최근에 완료된 사용자 턴(들)을 관찰 증거만으로
+재구성한 리포트를 생성합니다. 숫자를 인자로 줄 수 있습니다 — 인자가 없으면 최근 1턴,
+숫자를 주면 그 개수만큼의 최근 턴을 보여줍니다.
 
 ```text
 /mason-recap:1
+/mason-recap:1 3
 ```
 
 출력 형식과 예시는 [examples/sample-report.md](./examples/sample-report.md)를 참고해 주세요.

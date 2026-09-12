@@ -5,7 +5,7 @@
     "name": "fe-hyunsu"
   },
   "description": "Marketplace for mason-recap, an observability plugin that reconstructs how Claude Code handled a request from observed hook/transcript evidence.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "metadata": {
     "pluginRoot": "./plugins"
   },
@@ -15,7 +15,7 @@
       "source": "./plugins/mason-recap",
       "displayName": "Mason Recap",
       "description": "Local, hooks-based observability for Claude Code: captures observable execution evidence (prompts, tool calls, file paths, subagent activity, final answer) into project-local JSONL logs, with sensitive-data masking, and provides /mason-recap:1, /mason-recap:all, and /mason-recap:status commands plus a decision-analysis Skill to reconstruct what Claude did and why — always separating observed facts from inferred interpretation and unknowns. No chain-of-thought extraction, no network calls, no external services.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "fe-hyunsu"
       },
